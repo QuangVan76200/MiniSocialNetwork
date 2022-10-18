@@ -16,4 +16,5 @@ import lombok.Setter;
 public class CommentResponse {
     private Comment comment;
     private Boolean likedByAuthUser;
+
 }
