@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
@@ -57,14 +59,14 @@ public class User implements Serializable {
 	@Size(max = 50)
 	@Column(name = "password")
 	private String password;
-	
-	@Column(name="reset_password_token")
+
+	@Column(name = "reset_password_token")
 	private String resetPasswordToken;
 
 	@NotBlank
 	@Size(max = 50)
 	@Email
-	@Pattern(regexp="/^[a-zA-Z0-9_.+-]+@fsoft.com.vn$/")  
+	@Pattern(regexp = "/^[a-zA-Z0-9_.+-]+@fsoft.com.vn$/")
 	@Column(name = "email")
 	private String email;
 
@@ -98,17 +100,27 @@ public class User implements Serializable {
 	@ManyToMany(mappedBy = "likePost")
 	private List<Post> likePosts = new ArrayList<>();
 
+	@OneToMany(mappedBy = "fromUser", cascade = CascadeType.ALL)
+	private List<Message> getFromUserMessagesList = new ArrayList<>();
+
+	@OneToMany(mappedBy = "toUser", cascade = CascadeType.ALL)
+	public List<Message> getToUserMessagesList = new ArrayList<>();
+
 	public User() {
 	}
 
 	public User(Long id, @NotBlank @Size(min = 5, max = 100) String fullName,
 			@NotBlank @Size(min = 5, max = 100) String userName, @NotBlank @Size(max = 50) String password,
-			@NotBlank @Size(max = 50) @Email String email, String phone, int numbOfFollowers, int numbOfFollowing,
-			String avatar, Set<Role> roles, List<User> followerUsers, List<User> followingUsers, List<Post> likePosts) {
+			String resetPasswordToken,
+			@NotBlank @Size(max = 50) @Email @Pattern(regexp = "/^[a-zA-Z0-9_.+-]+@fsoft.com.vn$/") String email,
+			String phone, Integer numbOfFollowers, Integer numbOfFollowing, String avatar, Set<Role> roles,
+			List<User> followerUsers, List<User> followingUsers, List<Post> likePosts,
+			List<Message> getFromUserMessagesList, List<Message> getToUserMessagesList) {
 		this.id = id;
 		this.fullName = fullName;
 		this.userName = userName;
 		this.password = password;
+		this.resetPasswordToken = resetPasswordToken;
 		this.email = email;
 		this.phone = phone;
 		this.numbOfFollowers = numbOfFollowers;
@@ -118,6 +130,8 @@ public class User implements Serializable {
 		this.followerUsers = followerUsers;
 		this.followingUsers = followingUsers;
 		this.likePosts = likePosts;
+		this.getFromUserMessagesList = getFromUserMessagesList;
+		this.getToUserMessagesList = getToUserMessagesList;
 	}
 
 	public User(@NotBlank @Size(min = 5, max = 100) String fullName,
@@ -161,6 +175,14 @@ public class User implements Serializable {
 		this.password = password;
 	}
 
+	public String getResetPasswordToken() {
+		return resetPasswordToken;
+	}
+
+	public void setResetPasswordToken(String resetPasswordToken) {
+		this.resetPasswordToken = resetPasswordToken;
+	}
+
 	public String getEmail() {
 		return email;
 	}
@@ -177,19 +199,19 @@ public class User implements Serializable {
 		this.phone = phone;
 	}
 
-	public int getNumbOfFollowers() {
+	public Integer getNumbOfFollowers() {
 		return numbOfFollowers;
 	}
 
-	public void setNumbOfFollowers(int numbOfFollowers) {
+	public void setNumbOfFollowers(Integer numbOfFollowers) {
 		this.numbOfFollowers = numbOfFollowers;
 	}
 
-	public int getNumbOfFollowing() {
+	public Integer getNumbOfFollowing() {
 		return numbOfFollowing;
 	}
 
-	public void setNumbOfFollowing(int numbOfFollowing) {
+	public void setNumbOfFollowing(Integer numbOfFollowing) {
 		this.numbOfFollowing = numbOfFollowing;
 	}
 
@@ -233,30 +255,31 @@ public class User implements Serializable {
 		this.likePosts = likePosts;
 	}
 
+	public List<Message> getGetFromUserMessagesList() {
+		return getFromUserMessagesList;
+	}
+
+	public void setGetFromUserMessagesList(List<Message> getFromUserMessagesList) {
+		this.getFromUserMessagesList = getFromUserMessagesList;
+	}
+
+	public List<Message> getGetToUserMessagesList() {
+		return getToUserMessagesList;
+	}
+
+	public void setGetToUserMessagesList(List<Message> getToUserMessagesList) {
+		this.getToUserMessagesList = getToUserMessagesList;
+	}
+
 	public static long getSerialversionuid() {
 		return serialVersionUID;
-	}
-	
-	public String getResetPasswordToken() {
-		return resetPasswordToken;
-	}
-
-	public void setResetPasswordToken(String resetPasswordToken) {
-		this.resetPasswordToken = resetPasswordToken;
-	}
-
-	public void setNumbOfFollowers(Integer numbOfFollowers) {
-		this.numbOfFollowers = numbOfFollowers;
-	}
-
-	public void setNumbOfFollowing(Integer numbOfFollowing) {
-		this.numbOfFollowing = numbOfFollowing;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(avatar, email, followerUsers, followingUsers, fullName, id, likePosts, numbOfFollowers,
-				numbOfFollowing, password, phone, roles, userName);
+		return Objects.hash(avatar, email, followerUsers, followingUsers, fullName, getFromUserMessagesList,
+				getToUserMessagesList, id, likePosts, numbOfFollowers, numbOfFollowing, password, phone,
+				resetPasswordToken, roles, userName);
 	}
 
 	@Override
@@ -271,21 +294,22 @@ public class User implements Serializable {
 		return Objects.equals(avatar, other.avatar) && Objects.equals(email, other.email)
 				&& Objects.equals(followerUsers, other.followerUsers)
 				&& Objects.equals(followingUsers, other.followingUsers) && Objects.equals(fullName, other.fullName)
-				&& Objects.equals(id, other.id) && Objects.equals(likePosts, other.likePosts)
-				&& numbOfFollowers == other.numbOfFollowers && numbOfFollowing == other.numbOfFollowing
-				&& Objects.equals(password, other.password) && Objects.equals(phone, other.phone)
+				&& Objects.equals(getFromUserMessagesList, other.getFromUserMessagesList)
+				&& Objects.equals(getToUserMessagesList, other.getToUserMessagesList) && Objects.equals(id, other.id)
+				&& Objects.equals(likePosts, other.likePosts) && Objects.equals(numbOfFollowers, other.numbOfFollowers)
+				&& Objects.equals(numbOfFollowing, other.numbOfFollowing) && Objects.equals(password, other.password)
+				&& Objects.equals(phone, other.phone) && Objects.equals(resetPasswordToken, other.resetPasswordToken)
 				&& Objects.equals(roles, other.roles) && Objects.equals(userName, other.userName);
 	}
 
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", fullName=" + fullName + ", userName=" + userName + ", password=" + password
-				+ ", email=" + email + ", phone=" + phone + ", numbOfFollowers=" + numbOfFollowers
-				+ ", numbOfFollowing=" + numbOfFollowing + ", avatar=" + avatar + ", roles=" + roles
-				+ ", followerUsers=" + followerUsers + ", followingUsers=" + followingUsers + ", likePosts=" + likePosts
-				+ "]";
+				+ ", resetPasswordToken=" + resetPasswordToken + ", email=" + email + ", phone=" + phone
+				+ ", numbOfFollowers=" + numbOfFollowers + ", numbOfFollowing=" + numbOfFollowing + ", avatar=" + avatar
+				+ ", roles=" + roles + ", followerUsers=" + followerUsers + ", followingUsers=" + followingUsers
+				+ ", likePosts=" + likePosts + ", getFromUserMessagesList=" + getFromUserMessagesList
+				+ ", getToUserMessagesList=" + getToUserMessagesList + "]";
 	}
-
-	
 
 }

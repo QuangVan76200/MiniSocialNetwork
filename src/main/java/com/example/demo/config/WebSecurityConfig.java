@@ -1,8 +1,9 @@
 package com.example.demo.config;
 
-import java.util.Arrays;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -69,11 +70,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	  @Bean
 	    CorsConfigurationSource corsConfigurationSource() {
 	        org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
-//	        configuration.setAllowedHeaders(List.of("*"));
+	        configuration.setAllowedHeaders(List.of("*"));
 	        configuration.setAllowedOrigins(List.of("*"));
 	        configuration.setAllowedMethods(List.of("GET","POST"));
 	        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 	        source.registerCorsConfiguration("/**", configuration );
 	        return source;
+	    }
+	  
+	  @Bean
+	    public ModelMapper modelMapper() {
+	        // Tạo object và cấu hình
+	        ModelMapper modelMapper = new ModelMapper();
+	        modelMapper.getConfiguration()
+	                .setMatchingStrategy(MatchingStrategies.STRICT);
+	        return modelMapper;
 	    }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,14 +38,24 @@ public class Message {
 	private String imageUrl;
 
 	@ManyToOne
-	@JoinColumn(name = "userId")
-	private User user;
+	@JoinColumn(name = "from_user_id", referencedColumnName = "userId")
+	private User fromUser;
+
+	@ManyToOne
+	@JoinColumn(name = "to_user_id", referencedColumnName = "userId")
+	private User toUser;
 
 	@Column(name = "type")
 	private String type;
 
+	@Column(name = "messageStatus")
+	private int messageStatus;
+
 	@Transient
-	private MessageStatus status;
+	private MessageStatus statusChat;
+
+	@Column(name = "time")
+	private LocalDateTime time;
 
 	@JsonIgnore
 	@ManyToMany(mappedBy = "groupChat")
@@ -54,15 +65,18 @@ public class Message {
 
 	}
 
-	public Message(Long messageId, String message, Set<ImageFile> images, String imageUrl, User user, String type,
-			MessageStatus status, Set<GroupEntity> groupChat) {
+	public Message(Long messageId, String message, Set<ImageFile> images, String imageUrl, User fromUser, User toUser,
+			String type, int messageStatus, MessageStatus statusChat, LocalDateTime time, Set<GroupEntity> groupChat) {
 		this.messageId = messageId;
 		this.message = message;
 		this.images = images;
 		this.imageUrl = imageUrl;
-		this.user = user;
+		this.fromUser = fromUser;
+		this.toUser = toUser;
 		this.type = type;
-		this.status = status;
+		this.messageStatus = messageStatus;
+		this.statusChat = statusChat;
+		this.time = time;
 		this.groupChat = groupChat;
 	}
 
@@ -98,12 +112,20 @@ public class Message {
 		this.imageUrl = imageUrl;
 	}
 
-	public User getUser() {
-		return user;
+	public User getFromUser() {
+		return fromUser;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setFromUser(User fromUser) {
+		this.fromUser = fromUser;
+	}
+
+	public User getToUser() {
+		return toUser;
+	}
+
+	public void setToUser(User toUser) {
+		this.toUser = toUser;
 	}
 
 	public String getType() {
@@ -114,12 +136,28 @@ public class Message {
 		this.type = type;
 	}
 
-	public MessageStatus getStatus() {
-		return status;
+	public int getMessageStatus() {
+		return messageStatus;
 	}
 
-	public void setStatus(MessageStatus status) {
-		this.status = status;
+	public void setMessageStatus(int messageStatus) {
+		this.messageStatus = messageStatus;
+	}
+
+	public MessageStatus getStatusChat() {
+		return statusChat;
+	}
+
+	public void setStatusChat(MessageStatus statusChat) {
+		this.statusChat = statusChat;
+	}
+
+	public LocalDateTime getTime() {
+		return time;
+	}
+
+	public void setTime(LocalDateTime time) {
+		this.time = time;
 	}
 
 	public Set<GroupEntity> getGroupChat() {

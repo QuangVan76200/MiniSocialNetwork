@@ -4,7 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.entity.User;
 
-public class MessageDTO {
+public class UnreadMessagesDTO {
 
 	private Long messageId;
 	private String message;
@@ -12,20 +12,23 @@ public class MessageDTO {
 	private User sender;
 	private User receiver;
 	private String type;
+	private int messageStatus;
 	private int count;
 
-	public MessageDTO() {
+	public UnreadMessagesDTO() {
 
 	}
 
-	public MessageDTO(Long messageId, String message, MultipartFile imageUrl, User sender, User receiver, String type, int count) {
+	public UnreadMessagesDTO(Long messageId, String message, MultipartFile imageUrl, User sender, User receiver,
+			String type, int messageStatus, int count) {
 		this.messageId = messageId;
 		this.message = message;
 		this.imageUrl = imageUrl;
 		this.sender = sender;
 		this.receiver = receiver;
 		this.type = type;
-		this.count=count;
+		this.messageStatus = messageStatus;
+		this.count = count;
 	}
 
 	public Long getMessageId() {
@@ -76,14 +79,20 @@ public class MessageDTO {
 		this.type = type;
 	}
 
-    public int getCount() {
-        return count;
-    }
+	public int getMessageStatus() {
+		return messageStatus;
+	}
 
-    public void setCount(int count) {
-        this.count = count;
-    }
-	
-	
+	public void setMessageStatus(int messageStatus) {
+		this.messageStatus = messageStatus;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
+	}
 
 }
