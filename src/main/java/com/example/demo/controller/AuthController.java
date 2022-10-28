@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.lang.module.ResolutionException;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -26,6 +27,7 @@ import com.example.demo.dto.request.SignInForm;
 import com.example.demo.dto.request.SignUpForm;
 import com.example.demo.dto.respone.JwtResponse;
 import com.example.demo.dto.respone.ResponseMessage;
+import com.example.demo.entity.Response;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.RoleName;
 import com.example.demo.entity.User;
@@ -99,14 +101,24 @@ public class AuthController {
 	}
 	
 	@PostMapping("/signin")
-	public ResponseEntity<?> login(@Valid @RequestBody SignInForm signInForm) {
-		Authentication authentication = authenticationManager.authenticate(
-				new UsernamePasswordAuthenticationToken(signInForm.getUserName(), signInForm.getPassword()));
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		String token = jwtProvider.createToken(authentication);
-		System.out.println(token);
-		UserPrinciple userPrincipal = (UserPrinciple) authentication.getPrincipal();
-		return  ResponseEntity.ok(new JwtResponse(token, userPrincipal.getFullName(), userPrincipal.getAuthorities()));
+	public ResponseEntity<?> login(@Valid @RequestBody SignInForm signInForm) throws Exception{
+	    try {
+	        Authentication authentication = authenticationManager.authenticate(
+	                new UsernamePasswordAuthenticationToken(signInForm.getUserName(), signInForm.getPassword()));
+	        if(!(authentication!=null)) {
+	            throw new ResponseMessage("You need to check againts username and password");
+	        }
+
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
+	        String token = jwtProvider.createToken(authentication);
+	        System.out.println(token);
+	        UserPrinciple userPrincipal = (UserPrinciple) authentication.getPrincipal();
+	        return  ResponseEntity.ok(new JwtResponse(token, userPrincipal.getFullName(), userPrincipal.getAuthorities()));
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Failed", e.getMessage(), null));
+        }
+		
 	}
 	
 
