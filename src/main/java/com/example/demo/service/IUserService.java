@@ -5,13 +5,13 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.User;
 
-@Component
-public interface IUserService {
+public interface IUserService{
 
 	Optional<User> getAuthenticatedUser(String userName);
 
@@ -25,6 +25,11 @@ public interface IUserService {
 
 	// when create data, email has exists in database?
 	Boolean existByEmail(String email);
+	
+	boolean checkLogin(Optional<User> user);
+	
+	Optional<User> findByEmail(String email)throws ResponseMessage ;
+	
 
 	// Create data
 	User save(User user);
@@ -33,6 +38,8 @@ public interface IUserService {
 	void follow(String userName) throws ResponseMessage;
 
 	void unfollow(String userName) throws ResponseMessage;
+	
+	boolean isCorrectConfirmPassword(User user);
 //
 //	void createPasswordResetTokenForUser(User user, String token);
 //

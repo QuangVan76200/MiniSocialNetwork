@@ -8,63 +8,66 @@ import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.dao.IUserDao;
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.User;
+import com.example.demo.security.userprical.UserPrinciple;
 import com.example.demo.service.IUserService;
 
 @Service
 public class UserServiceImpl implements IUserService {
 
-	@Autowired
-	IUserDao userDao;
+    @Autowired
+    IUserDao userDao;
 
-	@Autowired
-	HttpServletRequest request;
-	
-	private static JavaMailSender mailSender;
+    @Autowired
+    HttpServletRequest request;
 
-	@Override
-	public List<User> findAll() {
-		return userDao.findAll();
-	}
+    private static JavaMailSender mailSender;
 
-	@Override
-	public Optional<User> findByUserName(String userName) {
-		// TODO Auto-generated method stub
-		return userDao.findByUserName(userName);
-	}
+    @Override
+    public List<User> findAll() {
+        return userDao.findAll();
+    }
 
-	@Override
-	public Boolean existsByUserName(String userName) {
-		// TODO Auto-generated method stub
-		return userDao.existsByEmail(userName);
-	}
+    @Override
+    public Optional<User> findByUserName(String userName) {
+        // TODO Auto-generated method stub
+        return userDao.findByUserName(userName);
+    }
 
-	@Override
-	public Boolean existByEmail(String email) {
-		// TODO Auto-generated method stub
-		return userDao.existsByEmail(email);
-	}
+    @Override
+    public Boolean existsByUserName(String userName) {
+        // TODO Auto-generated method stub
+        return userDao.existsByEmail(userName);
+    }
 
-	@Override
-	public User save(User user) {
-		// TODO Auto-generated method stub
-		return userDao.save(user);
-	}
+    @Override
+    public Boolean existByEmail(String email) {
+        // TODO Auto-generated method stub
+        return userDao.existsByEmail(email);
+    }
 
-	@Override
-	public Optional<User> getAuthenticatedUser(String userName) {
-		return userDao.findByUserName(userName);
-	}
+    @Override
+    public User save(User user) {
+        // TODO Auto-generated method stub
+        return userDao.save(user);
+    }
 
-	@Transactional
-	@Override
-	public void follow(String userName) throws ResponseMessage {
-		String user = request.getUserPrincipal().getName();
-		Optional<User> authUser = getAuthenticatedUser(user);
+    @Override
+    public Optional<User> getAuthenticatedUser(String userName) {
+        return userDao.findByUserName(userName);
+    }
+
+    @Transactional
+    @Override
+    public void follow(String userName) throws ResponseMessage {
+        String user = request.getUserPrincipal().getName();
+        Optional<User> authUser = getAuthenticatedUser(user);
 
 //		boolean isSameId = false;
 //		targetUser.get().getFollowers().forEach(e->{
@@ -84,48 +87,124 @@ public class UserServiceImpl implements IUserService {
 //			authUser.get().setNumbOfFollowing(authUser.get().getFollowing().size());
 //			System.out.println("targetUser.get() "+targetUser.get());
 //			targetUser.get().getFollowers().forEach(e->System.out.println(e.toString()));
-		// userDao.save(targetUser.get());
+        // userDao.save(targetUser.get());
 //		} else {
 //			unfollow(userName);
 //		}
-		Optional<User> targetUser = findByUserName(userName);
-		if (!targetUser.get().getFollowerUsers().contains(authUser.get())) {
+        Optional<User> targetUser = findByUserName(userName);
+        if (!targetUser.get().getFollowerUsers().contains(authUser.get())) {
 
-			authUser.get().getFollowingUsers().add(targetUser.get());
-			authUser.get().setNumbOfFollowing(authUser.get().getFollowingUsers().size());
+            authUser.get().getFollowingUsers().add(targetUser.get());
+            authUser.get().setNumbOfFollowing(authUser.get().getFollowingUsers().size());
 
-			targetUser.get().getFollowerUsers().add(authUser.get());
-			targetUser.get().setNumbOfFollowers(targetUser.get().getFollowerUsers().size());
+            targetUser.get().getFollowerUsers().add(authUser.get());
+            targetUser.get().setNumbOfFollowers(targetUser.get().getFollowerUsers().size());
 
-			System.out.println(targetUser.get().getNumbOfFollowers());
-			userDao.save(targetUser.get());
-			userDao.save(authUser.get());
+            System.out.println(targetUser.get().getNumbOfFollowers());
+            userDao.save(targetUser.get());
+            userDao.save(authUser.get());
 
-		} else {
-			unfollow(userName);
-		}
+        } else {
+            unfollow(userName);
+        }
 
-	}
+    }
 
-	@Override
-	public void unfollow(String userName) throws ResponseMessage {
-		String user = request.getUserPrincipal().getName();
-		Optional<User> authUser = getAuthenticatedUser(user);
-		if (!authUser.get().getUserName().equals(userName)) {
-			Optional<User> targetUser = findByUserName(userName);
-			authUser.get().getFollowingUsers().remove(targetUser.get());
-			authUser.get().setNumbOfFollowing(authUser.get().getFollowingUsers().size());
+    @Override
+    public void unfollow(String userName) throws ResponseMessage {
+        String user = request.getUserPrincipal().getName();
+        Optional<User> authUser = getAuthenticatedUser(user);
+        if (!authUser.get().getUserName().equals(userName)) {
+            Optional<User> targetUser = findByUserName(userName);
+            authUser.get().getFollowingUsers().remove(targetUser.get());
+            authUser.get().setNumbOfFollowing(authUser.get().getFollowingUsers().size());
 
-			targetUser.get().getFollowerUsers().remove(authUser.get());
-			targetUser.get().setNumbOfFollowers(targetUser.get().getFollowerUsers().size());
+            targetUser.get().getFollowerUsers().remove(authUser.get());
+            targetUser.get().setNumbOfFollowers(targetUser.get().getFollowerUsers().size());
 
-			userDao.save(targetUser.get());
-			userDao.save(authUser.get());
+            userDao.save(targetUser.get());
+            userDao.save(authUser.get());
 
-		} else {
-			throw new ResponseMessage("You only unfollow with another");
-		}
-	}
+        } else {
+            throw new ResponseMessage("You only unfollow with another");
+        }
+    }
+
+    public UserDetails loadUserByUsername(String username) {
+
+        Optional<User> user = userDao.findByUserName(username);
+
+        if (user.isEmpty()) {
+
+            throw new UsernameNotFoundException(username);
+
+        }
+
+        if (this.checkLogin(user)) {
+
+            return UserPrinciple.build(user.get());
+
+        }
+
+        boolean enable = false;
+
+        boolean accountNonExpired = false;
+
+        boolean credentialsNonExpired = false;
+
+        boolean accountNonLocked = false;
+
+        return new org.springframework.security.core.userdetails.User(user.get().getUserName(),
+
+                user.get().getPassword(), enable, accountNonExpired, credentialsNonExpired,
+
+                accountNonLocked, null);
+
+    }
+
+    @Override
+
+    public boolean checkLogin(Optional<User> user) {
+
+        Iterable<User> users = this.findAll();
+
+        boolean isCorrectUser = false;
+
+        for (User currentUser : users) {
+
+            if (currentUser.getUserName().equals(user.get().getUserName())
+
+                    && user.get().getPassword().equals(currentUser.getPassword()) &&
+
+                    currentUser.isEnabled()) {
+
+                isCorrectUser = true;
+
+            }
+
+        }
+
+        return isCorrectUser;
+
+    }
+
+    @Override
+    public boolean isCorrectConfirmPassword(User user) {
+        boolean isCorrectConfirmPassword = false;
+
+        if (user.getPassword().equals(user.getConfirmPassword())) {
+
+            isCorrectConfirmPassword = true;
+
+        }
+
+        return isCorrectConfirmPassword;
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) throws ResponseMessage {
+        return userDao.findByEmail(email);
+    }
 
 //	@Override
 //	public User getUserByEmail(String email) throws ResponseMessage {
@@ -180,6 +259,4 @@ public class UserServiceImpl implements IUserService {
 //		return null;
 //	}
 
-
-	
 }

@@ -9,8 +9,6 @@ public class TestDatabaseJpaApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(TestDatabaseJpaApplication.class, args);
-		
-		
 	}
 
 }

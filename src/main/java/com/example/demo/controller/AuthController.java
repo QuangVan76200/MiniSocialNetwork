@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.AssertingParty.Verification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,15 +65,16 @@ public class AuthController {
 	IUserDao userDao;
 	
 	@PostMapping("/signup")
-	public ResponseEntity<?> register(@Valid @RequestBody SignUpForm signUpForm) {
-		System.out.println(signUpForm.getPassword());
-		System.out.println(signUpForm.getUserName());
+	public ResponseEntity<?> register(@Valid @RequestBody SignUpForm signUpForm, BindingResult bindingResult) {
 		if (userServiceImpl.existsByUserName(signUpForm.getUserName())) {
 			return new ResponseEntity<>(new ResponseMessage("The Username is exists! please try another username"), HttpStatus.OK);
 		}
-		else if(userServiceImpl.existByEmail(signUpForm.getEmail())) {
+		if(userServiceImpl.existByEmail(signUpForm.getEmail())) {
 			return new ResponseEntity<>(new ResponseMessage("The Email is exists! please try another Email"), HttpStatus.OK);
 		}
+		
+		
+		
 				
 		User user = new User(signUpForm.getFullName() ,signUpForm.getUserName(), signUpForm.getEmail(), passwordEncoder.encode(signUpForm.getPassword()));
 		user.setNumbOfFollowers(0);
@@ -95,7 +98,15 @@ public class AuthController {
 			}
 		});
 		user.setRoles(setRoles);
+//		
+//		if(!userServiceImpl.isCorrectConfirmPassword(user)) {
+//		    return new ResponseEntity<>(new ResponseMessage("You need to enter the correct verification code"), HttpStatus.BAD_REQUEST);
+//		}
+		
+//		user.setPassword(passwordEncoder.encode(user.getConfirmPassword()));
 		userServiceImpl.save(user);
+		
+		System.out.println(user);
 		System.out.println(user.getFullName());
 		return new ResponseEntity<>(new ResponseMessage("Create success fully"), HttpStatus.OK);
 	}
@@ -105,9 +116,6 @@ public class AuthController {
 	    try {
 	        Authentication authentication = authenticationManager.authenticate(
 	                new UsernamePasswordAuthenticationToken(signInForm.getUserName(), signInForm.getPassword()));
-	        if(!(authentication!=null)) {
-	            throw new ResponseMessage("You need to check againts username and password");
-	        }
 
 	        SecurityContextHolder.getContext().setAuthentication(authentication);
 	        String token = jwtProvider.createToken(authentication);
