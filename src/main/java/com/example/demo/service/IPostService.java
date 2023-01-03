@@ -50,5 +50,7 @@ public interface IPostService extends IService<Post> {
     void deletePostComment(Long commentId, Long postId) ;
 
 	Post createNewPost(String title, String content, MultipartFile image) throws IOException;
+	
+	List<Post> findAll();
 
 }

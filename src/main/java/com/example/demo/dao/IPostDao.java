@@ -42,4 +42,6 @@ public interface IPostDao extends JpaRepository<Post, Long>{
 	Optional<Post> save(Optional<Post> targetPost);
 
 	
+	List<Post> findAll();
+	
 }
