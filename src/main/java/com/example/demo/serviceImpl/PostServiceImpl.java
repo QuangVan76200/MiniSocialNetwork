@@ -37,8 +37,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostServiceImpl implements IPostService {
 
-    private static final Path CURRENT_FOLDER = Paths.get(System.getProperty("user.dir"));
-
     @Autowired
     IUserService iUserService;
 

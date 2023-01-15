@@ -15,7 +15,6 @@ import com.example.demo.entity.Message;
 
 public interface IChatMessageDao extends JpaRepository<Message, Long> {
 
-    @Modifying
     @Query(value =  "Select m from message as m "
             + "WHERE(m.from_user_id = :firstUser AND m.to_user_id = :secondUser)"
             + "OR (m.from_user_id = :secondUser AND m.to_user_id = :firstUser )"
