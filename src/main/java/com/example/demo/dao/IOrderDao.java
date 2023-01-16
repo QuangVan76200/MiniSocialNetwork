@@ -12,5 +12,7 @@ public interface IOrderDao extends JpaRepository<Order, Long>{
 	@Query(value = "select * from product p inner join order_details od on p.product_id= od.product_id inner join orders o on od.order_id =o.order_id\r\n"
 			+ "where c.product_id = :productId AND o.order_id= :orderId", nativeQuery = true)
 	OrderDetails productOrders(Long productId, Long orderId);
+	
+	
 
 }

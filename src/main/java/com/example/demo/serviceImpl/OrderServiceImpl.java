@@ -16,7 +16,7 @@ import com.example.demo.dao.IProductDao;
 import com.example.demo.dao.IUserDao;
 import com.example.demo.dto.request.CreateOrderRequest;
 import com.example.demo.dto.request.CreateToOrderRequestDTO;
-import com.example.demo.dto.request.OrderProductItem;
+import com.example.demo.dto.request.GetAllMyOrdersDTO;
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.OrderDetails;
@@ -103,23 +103,27 @@ public class OrderServiceImpl implements IOrderService {
 	}
 
 	@Override
-	public void cancelOrder(Long productId, Long orderID) throws ResponseMessage {
+	public void cancelOrder(Long orderDetailsId) throws ResponseMessage {
 
-		OrderDetails productOrder = orderDao.productOrders(productId, orderID);
-		if (productOrder == null) {
+//		OrderDetails productOrder = orderDao.productOrders(productId, orderID);
+		Optional<OrderDetails> productOrder = orderDetailDao.findById(orderDetailsId);
+		if (productOrder.isEmpty()) {
 			throw new ResponseMessage("Order is not exists! Maybe wrong here");
 		} else {
 
-			productOrder.setOrderStatus("Cancelled");
-			orderDetailDao.save(productOrder);
+			productOrder.get().setOrderStatus("Cancelled");
+			orderDetailDao.save(productOrder.get());
 
 		}
 	}
 
 	@Override
-	public List<Order> getAllOrders() {
-		// TODO Auto-generated method stub
-		return null;
+	public Order getAllOrders(GetAllMyOrdersDTO listOrderRequest)  throws ResponseMessage  {
+		Optional<Order> getAllOrders = orderDao.findById(listOrderRequest.getOrderId());
+		if(getAllOrders.get().getOrderItems().size() ==0) {
+			throw new ResponseMessage("You don't have any invoices yet");
+		}
+		return getAllOrders.get();
 	}
 
 }

@@ -83,5 +83,12 @@ public class OrderDetails {
 	public void setOrderStatus(String orderStatus) {
 		this.orderStatus = orderStatus;
 	}
+	
+//	@Override
+//	public String toString() {
+//		return "OrderDetails [orderDetailsId=" + orderDetailsId + ", product=" + product + ", productOrder="
+//				+ productOrder + ", quantity=" + quantity + ", orderStatus=" + orderStatus + ", totalPrice="
+//				+ totalPrice + "]";
+//	}
 
 }

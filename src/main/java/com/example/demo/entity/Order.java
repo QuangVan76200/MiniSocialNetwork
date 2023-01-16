@@ -45,6 +45,12 @@ public class Order {
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
 	private User user;
 
+	@Column(name = "paypalOrderId")
+	private String paypalOrderId;
+
+	@Column(name = "paypalOrderStatus")
+	private String paypalOrderStatus;
+
 	public Long getOrderId() {
 		return orderId;
 	}
@@ -99,6 +105,28 @@ public class Order {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getPaypalOrderId() {
+		return paypalOrderId;
+	}
+
+	public void setPaypalOrderId(String paypalOrderId) {
+		this.paypalOrderId = paypalOrderId;
+	}
+
+	public String getPaypalOrderStatus() {
+		return paypalOrderStatus;
+	}
+
+	public void setPaypalOrderStatus(String paypalOrderStatus) {
+		this.paypalOrderStatus = paypalOrderStatus;
+	}
+
+	@Override
+	public String toString() {
+		return "Order [orderId=" + orderId + ", orderItems=" + orderItems + ", createdAt=" + createdAt + ", updatedAt="
+				+ updatedAt + ", orderAdress=" + orderAdress + ", numberPhone=" + numberPhone + ", user=" + user + "]";
 	}
 
 }
