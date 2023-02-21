@@ -1,6 +1,6 @@
 package com.example.demo.entity;
 
-import java.math.BigDecimal;
+import java.io.Serializable;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -16,7 +16,12 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "Product")
-public class Product {
+public class Product implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -130,12 +135,15 @@ public class Product {
 		this.user = user;
 	}
 
-//	@Override
-//	public String toString() {
-//		return "Product [productId=" + productId + ", name=" + name + ", description=" + description + ", brandName="
-//				+ brandName + ", productQuantity=" + productQuantity + ", pricePerUnit=" + pricePerUnit + ", imageUrl="
-//				+ imageUrl + ", listOrderDetails=" + listOrderDetails + ", listCartItems=" + listCartItems + ", user="
-//				+ user + "]";
-//	}
+	// @Override
+	// public String toString() {
+	// return "Product [productId=" + productId + ", name=" + name + ",
+	// description=" + description + ", brandName="
+	// + brandName + ", productQuantity=" + productQuantity + ", pricePerUnit=" +
+	// pricePerUnit + ", imageUrl="
+	// + imageUrl + ", listOrderDetails=" + listOrderDetails + ", listCartItems=" +
+	// listCartItems + ", user="
+	// + user + "]";
+	// }
 
 }

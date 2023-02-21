@@ -1,5 +1,7 @@
 package com.example.demo.serviceImpl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -70,37 +72,40 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	@Override
 	public ShoppingCart addProductToCart(AddProductToCartRequest productCart) throws ResponseMessage {
 
-		Double totalPayment = 0D;
+		 final double PRICE_PER_UNIT = productCart.getProductItem().getPricePerUnit();
+		    final Long CART_ID = productCart.getCartId();
+		    final Long PRODUCT_ID = productCart.getProductItem().getProductId();
+		    final int QUANTITY = productCart.getQuantity();
 
-		CartItem presentCartItem = getCartItems(productCart.getProductItem().getProductId(), productCart.getCartId());
+		    CartItem presentCartItem = getCartItems(PRODUCT_ID, CART_ID);
+		    ShoppingCart shoppingCart = shoppingCartDao.findById(CART_ID).orElseThrow(() -> new ResponseMessage("Cart not found"));
+		    Product product = productDao.findById(PRODUCT_ID).orElseThrow(() -> new ResponseMessage("Product not found"));
 
-		Optional<ShoppingCart> cart = shoppingCartDao.findById(productCart.getCartId());
-		Optional<Product> productItems = productDao.findById(productCart.getProductItem().getProductId());
+		    if (presentCartItem != null) {
+		        double newQuantity = presentCartItem.getQuantity() + QUANTITY;
+		        double newTotalPrice = (newQuantity * PRICE_PER_UNIT);
+		        double diffTotalPrice = presentCartItem.getTotalPrice();
+		        presentCartItem.setQuantity(newQuantity);
+		        presentCartItem.setTotalPrice(newTotalPrice - diffTotalPrice);
+		        presentCartItem.setProduct(product);
+		    } else {
+		        CartItem cartItem = new CartItem();
+		        cartItem.setProduct(product);
+		        cartItem.setShoppingCartId(shoppingCart);
+		        cartItem.setQuantity((double) QUANTITY);
+		        cartItem.setTotalPrice(PRICE_PER_UNIT);
+		        presentCartItem = cartItem;
+		    }
 
-		if (presentCartItem != null) {
-			Double totalQuantity = (presentCartItem.getQuantity() + productCart.getQuantity());
-			Double sumTotal = ((totalQuantity * productItems.get().getPricePerUnit()));
-			presentCartItem.setQuantity(totalQuantity);
-			Double diffTotal = (presentCartItem.getTotalPrice());
-			presentCartItem.setTotalPrice((presentCartItem.getTotalPrice() + sumTotal) - diffTotal);
-			cartItemsDao.save(presentCartItem);
+		    List<CartItem> cartItemList = new ArrayList<>();
+		    cartItemList.addAll(shoppingCart.getListCartItem());
+		    cartItemList.add(presentCartItem);
 
-		} else {
-			CartItem cartItem = new CartItem();
+		    double totalPayment = cartItemList.stream().mapToDouble(CartItem::getTotalPrice).sum();
+		    shoppingCart.setTotalPayment(totalPayment);
 
-			cartItem.setProduct(productItems.get());
-			cartItem.setCartId(cart.get());
-			cartItem.setQuantity((double) productCart.getQuantity());
-			cartItem.setTotalPrice(productItems.get().getPricePerUnit());
-			cartItemsDao.save(cartItem);
-
-		}
-		for (CartItem items : cart.get().getListCartItem()) {
-			totalPayment += items.getTotalPrice();
-		}
-		cart.get().setTotalPayment(totalPayment);
-
-		return shoppingCartDao.save(cart.get());
+		    cartItemsDao.saveAll(cartItemList);
+		    return shoppingCartDao.save(shoppingCart);
 	}
 
 	@Override

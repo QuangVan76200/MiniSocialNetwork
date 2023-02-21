@@ -105,7 +105,7 @@ public class OrderServiceImpl implements IOrderService {
 	@Override
 	public void cancelOrder(Long orderDetailsId) throws ResponseMessage {
 
-//		OrderDetails productOrder = orderDao.productOrders(productId, orderID);
+//		OrderDetails productOrder = orderDao.productOrders(productId, orderID);	
 		Optional<OrderDetails> productOrder = orderDetailDao.findById(orderDetailsId);
 		if (productOrder.isEmpty()) {
 			throw new ResponseMessage("Order is not exists! Maybe wrong here");
@@ -118,9 +118,9 @@ public class OrderServiceImpl implements IOrderService {
 	}
 
 	@Override
-	public Order getAllOrders(GetAllMyOrdersDTO listOrderRequest)  throws ResponseMessage  {
+	public Order getAllOrders(GetAllMyOrdersDTO listOrderRequest) throws ResponseMessage {
 		Optional<Order> getAllOrders = orderDao.findById(listOrderRequest.getOrderId());
-		if(getAllOrders.get().getOrderItems().size() ==0) {
+		if (getAllOrders.get().getOrderItems().size() == 0) {
 			throw new ResponseMessage("You don't have any invoices yet");
 		}
 		return getAllOrders.get();

@@ -1,10 +1,12 @@
 package com.example.demo.entity;
 
+import java.io.Serializable;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -15,17 +17,19 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "shoppingCart")
-public class ShoppingCart {
+public class ShoppingCart implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long cartId;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "cartId")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "shoppingCartId", fetch = FetchType.EAGER)
 	private Set<CartItem> listCartItem;
-
-	@Column(name = "quantity")
-	private Long quantity;
 
 	@Column(name = "totalPayment")
 	private Double totalPayment;
@@ -48,14 +52,6 @@ public class ShoppingCart {
 
 	public void setListCartItem(Set<CartItem> listCartItem) {
 		this.listCartItem = listCartItem;
-	}
-
-	public Long getQuantity() {
-		return quantity;
-	}
-
-	public void setQuantity(Long quantity) {
-		this.quantity = quantity;
 	}
 
 	public Double getTotalPayment() {
@@ -84,8 +80,8 @@ public class ShoppingCart {
 
 	@Override
 	public String toString() {
-		return "ShoppingCart [cartId=" + cartId + ", listCartItem=" + listCartItem + ", quantity=" + quantity
-				+ ", totalPayment=" + totalPayment + ", user=" + user + "]";
+		return "ShoppingCart [cartId=" + cartId + ", listCartItem=" + listCartItem + ", quantity=" + ", totalPayment="
+				+ totalPayment + ", user=" + user + "]";
 	}
 
 }

@@ -32,4 +32,10 @@ public class AddProductToCartRequest {
 		this.productItem = productItem;
 	}
 
+	@Override
+	public String toString() {
+		return "AddProductToCartRequest [cartId=" + cartId + ", quantity=" + quantity + ", productItem=" + productItem
+				+ "]";
+	}
+
 }

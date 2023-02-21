@@ -1,5 +1,8 @@
 package com.example.demo.entity;
 
+import java.io.Serializable;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -12,7 +15,12 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "cartItem")
-public class CartItem {
+public class CartItem implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,9 +30,9 @@ public class CartItem {
 	@JoinColumn(name = "productId")
 	private Product product;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "cartId")
-	private ShoppingCart cartId;
+	private ShoppingCart shoppingCartId;
 
 	@Column(name = "quantity")
 	private Double quantity;
@@ -40,20 +48,8 @@ public class CartItem {
 		this.cartItemId = cartItemId;
 	}
 
-	public Product getProduct() {
-		return product;
-	}
-
 	public void setProduct(Product product) {
 		this.product = product;
-	}
-
-	public ShoppingCart getCartId() {
-		return cartId;
-	}
-
-	public void setCartId(ShoppingCart cartId) {
-		this.cartId = cartId;
 	}
 
 	public Double getQuantity() {
@@ -72,10 +68,16 @@ public class CartItem {
 		this.totalPrice = totalPrice;
 	}
 
-//	@Override
-//	public String toString() {
-//		return "CartItem [cartItemId=" + cartItemId + ", product=" + product + ", cartId=" + cartId
-//				+ ", productQuantity=" + productQuantity + ", totalPrice=" + totalPrice + "]";
-//	}
+	public void setShoppingCartId(ShoppingCart shoppingCartId) {
+		this.shoppingCartId = shoppingCartId;
+	}
+
+	// @Override
+	// public String toString() {
+	// return "CartItem [cartItemId=" + cartItemId + ", product=" + product + ",
+	// cartId=" + cartId
+	// + ", productQuantity=" + productQuantity + ", totalPrice=" + totalPrice +
+	// "]";
+	// }
 
 }
