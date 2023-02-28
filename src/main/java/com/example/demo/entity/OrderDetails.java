@@ -1,5 +1,7 @@
 package com.example.demo.entity;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,8 +10,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "OrderDetails")
@@ -19,22 +25,41 @@ public class OrderDetails {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long orderDetailsId;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "productId")
-	private Product product;
+	@Column(name = "customerUser")
+	private User customerUser;
 
-	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-	@JoinColumn(name = "orderId")
-	private Order productOrder;
+	@Column(name = "numberPhone")
+	private String numberPhone;
 
-	@Column(name = "quantity")
-	private Long quantity;
+	@Column(name = "paymentMethod")
+	private String paymentMethod;
+
+	@Column(name = "orderProduct")
+	private Product orderProduct;
+
+	@Column(name = "orderDay")
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	@DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
+	private LocalDateTime orderDay;
 
 	@Column(name = "orderStatus")
 	private String orderStatus;
 
+	@OneToOne(cascade = CascadeType.ALL)
+	private ShippingAddress shippingAddress;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	private BillingAddress billingAddress;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	private Payment payment;
+
 	@Column(name = "totalPrice")
 	private Double totalPrice;
+
+	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "cartItemId", referencedColumnName = "cartItemId")
+	private CartItem cartItem;
 
 	public Long getOrderDetailsId() {
 		return orderDetailsId;
@@ -44,28 +69,76 @@ public class OrderDetails {
 		this.orderDetailsId = orderDetailsId;
 	}
 
-	public Product getProduct() {
-		return product;
+	public User getCustomerUser() {
+		return customerUser;
 	}
 
-	public void setProduct(Product product) {
-		this.product = product;
+	public void setCustomerUser(User customerUser) {
+		this.customerUser = customerUser;
 	}
 
-	public Order getProductOrder() {
-		return productOrder;
+	public String getNumberPhone() {
+		return numberPhone;
 	}
 
-	public void setProductOrder(Order productOrder) {
-		this.productOrder = productOrder;
+	public void setNumberPhone(String numberPhone) {
+		this.numberPhone = numberPhone;
 	}
 
-	public Long getQuantity() {
-		return quantity;
+	public String getPaymentMethod() {
+		return paymentMethod;
 	}
 
-	public void setQuantity(Long quantity) {
-		this.quantity = quantity;
+	public void setPaymentMethod(String paymentMethod) {
+		this.paymentMethod = paymentMethod;
+	}
+
+	public Product getOrderProduct() {
+		return orderProduct;
+	}
+
+	public void setOrderProduct(Product orderProduct) {
+		this.orderProduct = orderProduct;
+	}
+
+	public LocalDateTime getOrderDay() {
+		return orderDay;
+	}
+
+	public void setOrderDay(LocalDateTime orderDay) {
+		this.orderDay = orderDay;
+	}
+
+	public String getOrderStatus() {
+		return orderStatus;
+	}
+
+	public void setOrderStatus(String orderStatus) {
+		this.orderStatus = orderStatus;
+	}
+
+	public ShippingAddress getShippingAddress() {
+		return shippingAddress;
+	}
+
+	public void setShippingAddress(ShippingAddress shippingAddress) {
+		this.shippingAddress = shippingAddress;
+	}
+
+	public BillingAddress getBillingAddress() {
+		return billingAddress;
+	}
+
+	public void setBillingAddress(BillingAddress billingAddress) {
+		this.billingAddress = billingAddress;
+	}
+
+	public Payment getPayment() {
+		return payment;
+	}
+
+	public void setPayment(Payment payment) {
+		this.payment = payment;
 	}
 
 	public Double getTotalPrice() {
@@ -76,19 +149,12 @@ public class OrderDetails {
 		this.totalPrice = totalPrice;
 	}
 
-	public String getOrderStatus() {
-		return orderStatus;
+	public CartItem getCartItem() {
+		return cartItem;
 	}
 
-	public void setOrderStatus(String orderStatus) {
-		this.orderStatus = orderStatus;
+	public void setCartItem(CartItem cartItem) {
+		this.cartItem = cartItem;
 	}
-	
-//	@Override
-//	public String toString() {
-//		return "OrderDetails [orderDetailsId=" + orderDetailsId + ", product=" + product + ", productOrder="
-//				+ productOrder + ", quantity=" + quantity + ", orderStatus=" + orderStatus + ", totalPrice="
-//				+ totalPrice + "]";
-//	}
 
 }

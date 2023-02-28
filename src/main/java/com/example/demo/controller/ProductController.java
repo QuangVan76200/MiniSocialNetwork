@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.Response;
 import com.example.demo.service.IProductService;
-		
+
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
@@ -28,6 +28,7 @@ public class ProductController {
 			@RequestParam("name") String name, @RequestParam("description") String description,
 			@RequestParam("brandName") String brandName, @RequestParam("pricePerUnit") Double pricePerUnit) {
 		try {
+			System.out.println("cicic");
 			Product newProduct = productService.addProduct(imageFile, name, description, brandName, pricePerUnit);
 
 			return ResponseEntity.status(HttpStatus.OK)
@@ -37,12 +38,18 @@ public class ProductController {
 		}
 
 	}
-		
+
 	@GetMapping("/all-products")
 	public ResponseEntity<?> getAllProducts() {
 		List<Product> listProduct = productService.getAllProducts();
-		return  ResponseEntity.status(HttpStatus.OK)
-				.body(new Response("OK", "", listProduct));
+		return ResponseEntity.status(HttpStatus.OK).body(new Response("OK", "", listProduct));
+	}
+
+	@GetMapping("/search-product")
+	public ResponseEntity<?> searchProduct(@RequestParam(required = false) String name,
+			@RequestParam(required = false) Double pricePerUnit, @RequestParam(required = false) String brandName) {
+		List<Product> listProduct = productService.search(name, pricePerUnit, brandName);
+		return ResponseEntity.status(HttpStatus.OK).body(new Response("OK", "", listProduct));
 	}
 
 }

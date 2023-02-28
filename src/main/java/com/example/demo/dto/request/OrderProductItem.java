@@ -1,16 +1,38 @@
 package com.example.demo.dto.request;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+
 public class OrderProductItem {
 
 	private Long orderId;
 
-	private long quantity;
+	private String customer;
 
 	private ProductItemDTO productItem;
 
 	private String orderAdress;
 
 	private String numberPhone;
+
+	@Enumerated(EnumType.STRING)
+	private PaymentMethod PaymentMethod;
+
+	@Enumerated(EnumType.STRING)
+	private OrderStatus status;
+
+	private Double totalPrice;
+
+	private Double quantity;
+
+	public enum PaymentMethod {
+		PAYMENT_ON_DELIVERY, PAYMENT_VIA_E_WALLET, PAYMENT_VIA_SMART_BANKING,
+
+	}
+
+	public enum OrderStatus {
+		NEW, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+	}
 
 	public Long getOrderId() {
 		return orderId;
@@ -20,12 +42,12 @@ public class OrderProductItem {
 		this.orderId = orderId;
 	}
 
-	public long getQuantity() {
-		return quantity;
+	public String getCustomer() {
+		return customer;
 	}
 
-	public void setQuantity(long quantity) {
-		this.quantity = quantity;
+	public void setCustomer(String customer) {
+		this.customer = customer;
 	}
 
 	public ProductItemDTO getProductItem() {
@@ -51,5 +73,39 @@ public class OrderProductItem {
 	public void setNumberPhone(String numberPhone) {
 		this.numberPhone = numberPhone;
 	}
+
+	public PaymentMethod getPaymentMethod() {
+		return PaymentMethod;
+	}
+
+	public void setPaymentMethod(PaymentMethod paymentMethod) {
+		PaymentMethod = paymentMethod;
+	}
+
+	public OrderStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(OrderStatus status) {
+		this.status = status;
+	}
+
+	public Double getTotalPrice() {
+		return totalPrice;
+	}
+
+	public void setTotalPrice(Double totalPrice) {
+		this.totalPrice = totalPrice;
+	}
+
+	public Double getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Double quantity) {
+		this.quantity = quantity;
+	}
+	
+	
 
 }

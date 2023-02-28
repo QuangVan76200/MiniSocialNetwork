@@ -15,6 +15,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "shoppingCart")
 public class ShoppingCart implements Serializable {
@@ -29,6 +31,7 @@ public class ShoppingCart implements Serializable {
 	private Long cartId;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "shoppingCartId", fetch = FetchType.EAGER)
+	@JsonIgnore
 	private Set<CartItem> listCartItem;
 
 	@Column(name = "totalPayment")

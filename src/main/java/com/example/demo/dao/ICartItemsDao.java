@@ -22,5 +22,8 @@ public interface ICartItemsDao extends JpaRepository<CartItem, Long> {
 	@Modifying
 	@Query(value = "delete from cart_item where product_id = :productId and cart_id = :cartId", nativeQuery = true)
 	void deleteByProductIdAndCartId(Long productId, Long cartId);
+	
+	
+	
 
 }

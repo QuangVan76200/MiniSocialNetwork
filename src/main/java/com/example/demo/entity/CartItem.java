@@ -11,7 +11,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "cartItem")
@@ -26,7 +31,7 @@ public class CartItem implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long cartItemId;
 
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "productId")
 	private Product product;
 
@@ -35,10 +40,13 @@ public class CartItem implements Serializable {
 	private ShoppingCart shoppingCartId;
 
 	@Column(name = "quantity")
-	private Double quantity;
+	private int quantity;
 
 	@Column(name = "totalPrice")
 	private Double totalPrice;
+
+	@OneToOne(mappedBy = "cartItem")
+	private OrderDetails order;
 
 	public Long getCartItemId() {
 		return cartItemId;
@@ -52,11 +60,19 @@ public class CartItem implements Serializable {
 		this.product = product;
 	}
 
-	public Double getQuantity() {
+	public Product getProduct() {
+		return product;
+	}
+
+	public void setShoppingCartId(ShoppingCart shoppingCartId) {
+		this.shoppingCartId = shoppingCartId;
+	}
+
+	public int getQuantity() {
 		return quantity;
 	}
 
-	public void setQuantity(Double quantity) {
+	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
 
@@ -68,16 +84,12 @@ public class CartItem implements Serializable {
 		this.totalPrice = totalPrice;
 	}
 
-	public void setShoppingCartId(ShoppingCart shoppingCartId) {
-		this.shoppingCartId = shoppingCartId;
+	public void setOrder(OrderDetails order) {
+		this.order = order;
 	}
 
-	// @Override
-	// public String toString() {
-	// return "CartItem [cartItemId=" + cartItemId + ", product=" + product + ",
-	// cartId=" + cartId
-	// + ", productQuantity=" + productQuantity + ", totalPrice=" + totalPrice +
-	// "]";
-	// }
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
 
 }

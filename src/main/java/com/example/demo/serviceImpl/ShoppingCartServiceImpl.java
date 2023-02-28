@@ -1,7 +1,5 @@
 package com.example.demo.serviceImpl;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -69,43 +67,68 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 		}
 	}
 
+	/**
+	 * 
+	 * Add a product to a shopping cart.
+	 * 
+	 * @param productCart An object of type AddProductToCartRequest that includes
+	 *                    the cart ID, the ID of the product to be added, and the
+	 *                    quantity of the product.
+	 * 
+	 * @return The updated shopping cart object after the product has been added.
+	 * 
+	 * @throws ResponseMessage If the cart or the product cannot be found.
+	 */
 	@Override
 	public ShoppingCart addProductToCart(AddProductToCartRequest productCart) throws ResponseMessage {
 
-		 final double PRICE_PER_UNIT = productCart.getProductItem().getPricePerUnit();
-		    final Long CART_ID = productCart.getCartId();
-		    final Long PRODUCT_ID = productCart.getProductItem().getProductId();
-		    final int QUANTITY = productCart.getQuantity();
+		final Long CART_ID = productCart.getCartId();
+		final Long PRODUCT_ID = productCart.getProductItem().getProductId();
+		final int QUANTITY = productCart.getQuantity();
 
-		    CartItem presentCartItem = getCartItems(PRODUCT_ID, CART_ID);
-		    ShoppingCart shoppingCart = shoppingCartDao.findById(CART_ID).orElseThrow(() -> new ResponseMessage("Cart not found"));
-		    Product product = productDao.findById(PRODUCT_ID).orElseThrow(() -> new ResponseMessage("Product not found"));
+		// FOUND PRODUCT IN CART
+		CartItem presentCartItem = getCartItems(PRODUCT_ID, CART_ID);
 
-		    if (presentCartItem != null) {
-		        double newQuantity = presentCartItem.getQuantity() + QUANTITY;
-		        double newTotalPrice = (newQuantity * PRICE_PER_UNIT);
-		        double diffTotalPrice = presentCartItem.getTotalPrice();
-		        presentCartItem.setQuantity(newQuantity);
-		        presentCartItem.setTotalPrice(newTotalPrice - diffTotalPrice);
-		        presentCartItem.setProduct(product);
-		    } else {
-		        CartItem cartItem = new CartItem();
-		        cartItem.setProduct(product);
-		        cartItem.setShoppingCartId(shoppingCart);
-		        cartItem.setQuantity((double) QUANTITY);
-		        cartItem.setTotalPrice(PRICE_PER_UNIT);
-		        presentCartItem = cartItem;
-		    }
+		// FOUND HAVE THE CART
+		ShoppingCart shoppingCart = shoppingCartDao.findById(CART_ID)
+				.orElseThrow(() -> new ResponseMessage("Cart not found"));
 
-		    List<CartItem> cartItemList = new ArrayList<>();
-		    cartItemList.addAll(shoppingCart.getListCartItem());
-		    cartItemList.add(presentCartItem);
+		// FIND PRODUCT BY ID_PRODUCT
+		Product product = productDao.findById(PRODUCT_ID).orElseThrow(() -> new ResponseMessage("Product not found"));
 
-		    double totalPayment = cartItemList.stream().mapToDouble(CartItem::getTotalPrice).sum();
-		    shoppingCart.setTotalPayment(totalPayment);
+		Double PRICE_PER_UNIT = product.getPricePerUnit();
 
-		    cartItemsDao.saveAll(cartItemList);
-		    return shoppingCartDao.save(shoppingCart);
+		Double totalPayment = 0D;
+
+		// IF PRODUCT ALREADY EXIST IN CART. UPDATE QUANTITY AND TOATAL MONEY
+		if (presentCartItem != null) {
+
+			int totalQuantity = (presentCartItem.getQuantity() + QUANTITY);
+			Double sumTotal = ((totalQuantity * PRICE_PER_UNIT));
+			presentCartItem.setQuantity(totalQuantity);
+			Double diffTotal = (presentCartItem.getTotalPrice());
+			presentCartItem.setTotalPrice((presentCartItem.getTotalPrice() + sumTotal) - diffTotal);
+			cartItemsDao.save(presentCartItem);
+
+		} else {
+			// CREATE NEW PRODUCT IN CART
+			CartItem cartItem = new CartItem();
+			cartItem.setProduct(product);
+			cartItem.setShoppingCartId(shoppingCart);
+			cartItem.setQuantity(QUANTITY);
+			cartItem.setTotalPrice(PRICE_PER_UNIT * QUANTITY);
+			System.out.println(cartItem.getTotalPrice());
+			cartItemsDao.save(cartItem);
+			shoppingCart.getListCartItem().add(cartItem);
+
+		}
+
+		for (CartItem items : shoppingCart.getListCartItem()) {
+			totalPayment += items.getTotalPrice();
+		}
+		shoppingCart.setTotalPayment(totalPayment);
+
+		return shoppingCartDao.save(shoppingCart);
 	}
 
 	@Override
@@ -131,8 +154,7 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 		}
 		int size = cleanRequest.getProductIds().size();
 		for (int i = 0; i < size; i++) {
-			cartItemsDao.deleteByProductIdAndCartId(cleanRequest.getProductIds().get(i), 
-					cleanRequest.getCartId());
+			cartItemsDao.deleteByProductIdAndCartId(cleanRequest.getProductIds().get(i), cleanRequest.getCartId());
 		}
 		cartItems.get().setTotalPayment(0D);
 		shoppingCartDao.save(cartItems.get());

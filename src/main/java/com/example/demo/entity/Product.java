@@ -6,6 +6,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -45,10 +46,7 @@ public class Product implements Serializable {
 	@Column(name = "imageUrl")
 	private String imageUrl;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
-	private List<OrderDetails> listOrderDetails;
-
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "product")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "product",  orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<CartItem> listCartItems;
 
 	@ManyToOne
@@ -111,14 +109,6 @@ public class Product implements Serializable {
 		this.imageUrl = imageUrl;
 	}
 
-	public List<OrderDetails> getListOrderDetails() {
-		return listOrderDetails;
-	}
-
-	public void setListOrderDetails(List<OrderDetails> listOrderDetails) {
-		this.listOrderDetails = listOrderDetails;
-	}
-
 	public List<CartItem> getListCartItems() {
 		return listCartItems;
 	}
@@ -127,9 +117,9 @@ public class Product implements Serializable {
 		this.listCartItems = listCartItems;
 	}
 
-	public User getUser() {
-		return user;
-	}
+//	public User getUser() {
+//		return user.getFullName;
+//	}
 
 	public void setUser(User user) {
 		this.user = user;
