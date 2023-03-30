@@ -83,8 +83,6 @@ public class PostServiceImpl implements IPostService {
         if (imageUrl != null && imageUrl.getSize() > 0) {
             String imgUrl = storeFile.uploadFile(imageUrl).toString();
             newPost.setImageUrl(imgUrl);
-        } else {
-            new ResponseMessage("imageUrl is empty");
         }
         return blogDao.save(newPost);
     }

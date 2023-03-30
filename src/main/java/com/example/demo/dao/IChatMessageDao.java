@@ -38,6 +38,8 @@ public interface IChatMessageDao extends JpaRepository<Message, Long> {
             + "Order By m.time DESC", nativeQuery = true)
     List<Message> getAllMessages(@Param("userId") Long userId);
 
+    @Transactional
+    @Modifying
     @Query(value = "update Message as m" +
             "set m.status = 1" +
             "where status = 0 AND to_user_id = :loggedId  and from_user_id = :secondId", nativeQuery = true)

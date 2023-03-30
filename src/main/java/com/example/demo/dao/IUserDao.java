@@ -26,7 +26,6 @@ public interface IUserDao extends JpaRepository<User, Long> {
 	
 	public User findByResetPasswordToken(String token);
 	
-//	@Modifying
 //	@Query(value = "select U from users U INNER JOIN followers F ON U.user_id = F.user_id where U.user_name= :userName")
 //	public List<User> getAllFollower(@Param("userName") String userName);
 	
