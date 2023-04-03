@@ -11,16 +11,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.respone.CommentDTO;
+import com.example.demo.dto.respone.PostDTO;
 import com.example.demo.dto.respone.ResponseMessage;
-import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 
 public interface IPostService extends IService<Post> {
-	
-	Optional<Post> updatePost(Long postId, String title, String content, MultipartFile postPhoto)throws IOException, ResponseMessage;
-	
+
+	PostDTO updatePost(Long postId, String title, String content, MultipartFile postPhoto)
+			throws IOException, ResponseMessage;
+
 	void deletePost(Long postId);
-	
+
 	Iterable<Post> findAllByContentContaining(String content);
 
 	Iterable<Post> findAllByTitleContaining(String title);
@@ -32,25 +34,25 @@ public interface IPostService extends IService<Post> {
 	@Modifying
 	@Query(value = "select a from Blog a where a.createdAt <= :createDate")
 	public List<Post> findAllWithByCreatedAtBefore(@Param("createDate") LocalDateTime createDate);
-	
-	List<Post> findPostByAuthorIdIn(List<Long> followingUserIds);
-	
-	List<Post> findAllByUserId(Long id);
-	
-	public int getCountOfnumbOfPost(@Param("id") Long id);
-	
-	void likePost(Long postId);
-	
-    void unlikePost(Long postId);
-    
-    Comment createPostComment(Long postId, String content, MultipartFile imageUrl)throws IOException;
-    
-    Comment updatePostComment(Long commentId, Long postId, String content,  MultipartFile imageUrl)throws IOException;
-    
-    void deletePostComment(Long commentId, Long postId) ;
 
-	Post createNewPost(String title, String content, MultipartFile image) throws IOException;
-	
+	List<Post> findPostByAuthorIdIn(List<Long> followingUserIds);
+
+	List<Post> findAllByUserId(Long id);
+
+	public int getCountOfnumbOfPost(@Param("id") Long id);
+
+	void likePost(Long postId);
+
+	void unlikePost(Long postId);
+
+	CommentDTO createPostComment(Long postId, String content, MultipartFile imageUrl) throws IOException;
+
+	CommentDTO updatePostComment(Long commentId, Long postId, String content, MultipartFile imageUrl) throws IOException;
+
+	void deletePostComment(Long commentId, Long postId);
+
+	PostDTO createNewPost(String title, String content, MultipartFile image) throws IOException ;
+
 	List<Post> findAll();
 
 }

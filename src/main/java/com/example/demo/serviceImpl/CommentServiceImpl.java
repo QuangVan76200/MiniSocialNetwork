@@ -6,18 +6,22 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.services.cognitoidp.model.UserNotFoundException;
 import com.example.demo.dao.ICommentDao;
+import com.example.demo.dto.respone.CommentDTO;
+import com.example.demo.dto.respone.PostDTO;
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
+import com.example.demo.exception.CommentNotFoundException;
 import com.example.demo.exception.InvalidOperationException;
 import com.example.demo.service.ICommentService;
-import com.example.demo.service.IFileDBService;
 import com.example.demo.service.IUserService;
 
 @Service
@@ -41,42 +45,55 @@ public class CommentServiceImpl implements ICommentService {
 	}
 
 	@Override
-	public Comment createNewComment(String content, Post post, MultipartFile imageUrl) throws IOException {
+	public CommentDTO createNewComment(String content, Post post, MultipartFile imageUrl) throws IOException {
 
 		String user = request.getUserPrincipal().getName();
-		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
+		User authUser = iUserService.getAuthenticatedUser(user)
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
 		Comment newComment = new Comment();
 		newComment.setText(content);
 		newComment.setCreated(new Date());
 		newComment.setModifiedDate(new Date());
-		newComment.setUser(authUser.get());
+		newComment.setUser(authUser);
 		newComment.setLikeCount(0);
 		newComment.setPost(post);
 		if (imageUrl != null && imageUrl.getSize() > 0) {
 			String imgUrl = storeFile.uploadFile(imageUrl).toString();
 			newComment.setImageUrl(imgUrl);
-		} else {
-			new ResponseMessage("imageUrl is empty");
 		}
-		return commentDao.save(newComment);
+
+		Comment saveComment = commentDao.save(newComment);
+		ModelMapper modelMapper = new ModelMapper();
+
+		CommentDTO commnetDTO = modelMapper.map(saveComment, CommentDTO.class);
+		return commnetDTO;
 	}
 
 	@Override
-	public Comment updateComment(Long commentId, String content, MultipartFile imageUrl) throws IOException {
+	public CommentDTO updateComment(Long commentId, String content, MultipartFile imageUrl) throws IOException {
 		String user = request.getUserPrincipal().getName();
 		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
 
 		Optional<Comment> targetComment = getCommentById(commentId);
+		Comment comment = targetComment.orElseThrow(() -> new CommentNotFoundException("Comment not exists"));
 
-		if (targetComment.get().getUser().getUserName().equals(user)) {
-			targetComment.get().setText(content);
-			targetComment.get().setModifiedDate(new Date());
-			String imgUrl = storeFile.uploadFile(imageUrl).toString();
-			targetComment.get().setImageUrl(imgUrl);
-			return commentDao.save(targetComment);
-		} else {
+		if (!comment.getUser().getUserName().equals(user)) {
 			throw new InvalidOperationException("Not Author");
 		}
+
+		comment.setText(content);
+		comment.setModifiedDate(new Date());
+
+		if (imageUrl != null && imageUrl.getSize() > 0) {
+			String imgUrl = storeFile.uploadFile(imageUrl).toString();
+			comment.setImageUrl(imgUrl);
+		}
+
+		Comment updatedComment = commentDao.save(comment);
+		ModelMapper modelMapper = new ModelMapper();
+		CommentDTO commentDTO = modelMapper.map(updatedComment, CommentDTO.class);
+		return commentDTO;
 	}
 
 	@Override
@@ -85,47 +102,51 @@ public class CommentServiceImpl implements ICommentService {
 		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
 
 		Optional<Comment> targetComment = getCommentById(commentId);
+		Comment comment = targetComment.orElseThrow(() -> new CommentNotFoundException("Comment not exists"));
 
-		if (targetComment.get().getUser().getUserName().equals(user)) {
-			commentDao.deleteById(commentId);
-		} else {
+		if (!comment.getUser().getUserName().equals(user)) {
 			throw new InvalidOperationException("Not Author");
 		}
 
+		commentDao.deleteById(commentId);
+
 	}
 
 	@Override
-	public Comment likeComment(Long commentId) {
+	public CommentDTO likeComment(Long commentId) {
 		Optional<Comment> targetComment = getCommentById(commentId);
+		Comment comment = targetComment.orElseThrow(() -> new CommentNotFoundException("Comment not exists"));
 		String user = request.getUserPrincipal().getName();
-		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-		if (targetComment.isPresent()) {
-			if (!targetComment.get().getLikeList().contains(authUser.get())) {
-				targetComment.get().getLikeList().add(authUser.get());
-				targetComment.get().setLikeCount(targetComment.get().getLikeCount() + 1);
-				commentDao.save(targetComment.get());
+		User authUser = iUserService.getAuthenticatedUser(user).orElseThrow();
 
-			} else {
-				unlikeComment(commentId);
-			}
-		} else {
-			throw new InvalidOperationException("Comment does not exists");
+		boolean isLiked = comment.getLikeList().contains(authUser);
+
+		if (!isLiked) {
+			comment.getLikeList().add(authUser);
+			comment.setLikeCount(comment.getLikeCount() + 1);
+			comment = commentDao.save(comment);
 		}
-		return targetComment.get();
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(targetComment, CommentDTO.class);
 	}
 
 	@Override
-	public Comment unlikeComment(Long commentId) {
+	public CommentDTO unlikeComment(Long commentId) {
 		Optional<Comment> targetComment = getCommentById(commentId);
+		Comment comment = targetComment.orElseThrow(() -> new CommentNotFoundException("Comment not exists"));
+
 		String user = request.getUserPrincipal().getName();
-		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-		if (targetComment.get().getLikeList().contains(authUser.get())) {
-			targetComment.get().getLikeList().remove(authUser.get());
-			targetComment.get().setLikeCount(targetComment.get().getLikeCount() - 1);
-			commentDao.save(targetComment.get());
+		User authUser = iUserService.getAuthenticatedUser(user).orElseThrow();
+
+		boolean isLiked = comment.getLikeList().contains(authUser);
+		if (isLiked) {
+			comment.getLikeList().remove(authUser);
+			comment.setLikeCount(comment.getLikeCount() - 1);
+			comment = commentDao.save(comment);
 		}
 
-		return targetComment.get();
+		ModelMapper modelMapper = new ModelMapper();
+		return modelMapper.map(targetComment, CommentDTO.class);
 	}
 
 }

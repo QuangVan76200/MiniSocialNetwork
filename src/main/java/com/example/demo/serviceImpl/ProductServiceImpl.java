@@ -7,12 +7,14 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dao.IProductDao;
 import com.example.demo.dao.IProductDaoQuery;
+import com.example.demo.dto.respone.ProductDTO;
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.User;
@@ -63,27 +65,51 @@ public class ProductServiceImpl implements IProductService {
 	 * @throws Exception if imageFile is empty or the upload to the server fails
 	 */
 	@Override
-	public Product addProduct(MultipartFile imageFile, String name, String description, String brandName,
+	public ProductDTO addProduct(MultipartFile imageFile, String name, String description, String brandName,
 			Double pricePerUnit) throws Exception {
 
 		String user = request.getUserPrincipal().getName();
 		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
+		if (authUser == null) {
+			throw new ResponseMessage("Could not find authenticated user.");
+		}
+
+		if (imageFile == null) {
+			throw new ResponseMessage("Image file is null.");
+		}
+
+		if (name == null || name.trim().isEmpty()) {
+			throw new ResponseMessage("Name is null or empty.");
+		}
+
+		if (description == null || description.trim().isEmpty()) {
+			throw new ResponseMessage("Description is null or empty.");
+		}
+
+		if (brandName == null || brandName.trim().isEmpty()) {
+			throw new ResponseMessage("Brand name is null or empty.");
+		}
+
+		if (pricePerUnit == null || pricePerUnit < 0) {
+			throw new ResponseMessage("Price per unit is null or negative.");
+		}
+
 		Product newProduct = new Product();
 		newProduct.setUser(authUser.get());
 		newProduct.setName(name);
 		newProduct.setDescription(description);
 		newProduct.setBrandName(brandName);
 		newProduct.setPricePerUnit(pricePerUnit);
-//			String imageUrl = this.amazonClient.uploadFile(imageFile);
-//			newProduct.setImageUrl(imageUrl);
-		if (imageFile != null && imageFile.getSize() > 0) {
-			String imgUrl = storeFile.uploadFile(imageFile).toString();
-			newProduct.setImageUrl(imgUrl);
-		} else {
-			throw new ResponseMessage("imageUrl is empty");
-		}
 
-		return productDao.save(newProduct);
+		String imgUrl = storeFile.uploadFile(imageFile).toString();
+		newProduct.setImageUrl(imgUrl);
+
+		Product savedProduct = productDao.save(newProduct);
+
+		ModelMapper modelMapper = new ModelMapper();
+		ProductDTO productDTO = modelMapper.map(savedProduct, ProductDTO.class);
+
+		return productDTO;
 
 	}
 

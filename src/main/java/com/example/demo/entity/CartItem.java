@@ -92,4 +92,14 @@ public class CartItem implements Serializable {
 		return serialVersionUID;
 	}
 
+	public ShoppingCart getShoppingCartId() {
+		return shoppingCartId;
+	}
+
+	public OrderDetails getOrder() {
+		return order;
+	}
+	
+	
+
 }

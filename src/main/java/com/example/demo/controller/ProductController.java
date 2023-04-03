@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.respone.ProductDTO;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.Response;
 import com.example.demo.service.IProductService;
@@ -29,7 +30,7 @@ public class ProductController {
 			@RequestParam("brandName") String brandName, @RequestParam("pricePerUnit") Double pricePerUnit) {
 		try {
 			System.out.println("cicic");
-			Product newProduct = productService.addProduct(imageFile, name, description, brandName, pricePerUnit);
+			ProductDTO newProduct = productService.addProduct(imageFile, name, description, brandName, pricePerUnit);
 
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(new Response("OK", "Insert newpost sucessfully", newProduct));

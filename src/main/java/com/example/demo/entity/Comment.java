@@ -1,7 +1,5 @@
 package com.example.demo.entity;
 
-import java.io.Serializable;
-import java.security.Timestamp;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -20,8 +18,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "Comment")
@@ -46,15 +45,15 @@ public class Comment {
 	private Integer likeCount;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonBackReference
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "postId")
-	@JsonIgnore
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 	private Post post;
 
-	@JsonIgnore
 	@ManyToMany
 	@JoinTable(name = "comment_likes", joinColumns = @JoinColumn(name = "commentId"), inverseJoinColumns = @JoinColumn(name = "userId"))
 	private List<User> likeList;
@@ -62,7 +61,6 @@ public class Comment {
 	@Column(name = "imageUrl")
 	private String imageUrl;
 
-	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "commentImage")
 	Set<ImageFile> images;
 

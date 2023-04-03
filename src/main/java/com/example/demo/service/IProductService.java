@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.respone.ProductDTO;
 import com.example.demo.entity.Product;
 
 public interface IProductService {
 
-	Product addProduct(MultipartFile imageFile, String name, String description, String brandName,
+	ProductDTO addProduct(MultipartFile imageFile, String name, String description, String brandName,
 			Double pricePerUnit)throws Exception;
 
 	List<Product> getAllProducts();

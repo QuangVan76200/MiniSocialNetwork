@@ -16,6 +16,7 @@ import com.example.demo.dto.request.CleanCartRequest;
 import com.example.demo.dto.request.CreateShoppingCartRequest;
 import com.example.demo.dto.request.RemoveFromCartDTO;
 import com.example.demo.dto.respone.ResponseMessage;
+import com.example.demo.dto.respone.ShoppingCartDTO;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.ShoppingCart;
 import com.example.demo.service.IShoppingCartService;
@@ -30,7 +31,7 @@ public class CartController {
 	@PostMapping("/create_shopping_cart")
 	public ResponseEntity<?> createShoppingCart(@RequestBody CreateShoppingCartRequest cartRequest) {
 		try {
-			ShoppingCart createCart = cartService.createShoppingCart(cartRequest);
+			ShoppingCartDTO createCart = cartService.createShoppingCart(cartRequest);
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("OK", "Create sucessfully", createCart));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("FAILED", e.getMessage(), null));
@@ -40,7 +41,7 @@ public class CartController {
 	@PostMapping("/add_to_cart")
 	public ResponseEntity<?> addToCart(@RequestBody AddProductToCartRequest productCart) {
 		try {
-			ShoppingCart addProductToCart = cartService.addProductToCart(productCart);
+			ShoppingCartDTO addProductToCart = cartService.addProductToCart(productCart);
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("OK", "Add Successfull", addProductToCart));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("FAILED", e.getMessage(), null));
@@ -50,7 +51,7 @@ public class CartController {
 	@GetMapping("/get-all-cartItems/{cartId}")
 	public ResponseEntity<?> getAllCartItems(@PathVariable("cartId") Long cartId) {
 		try {
-			ShoppingCart getAllCartItems = cartService.getAllCartItems(cartId);
+			ShoppingCartDTO getAllCartItems = cartService.getAllCartItems(cartId);
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("OK", "Successfully", getAllCartItems));
 		} catch (ResponseMessage e) {
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("FAILED", e.getMessage(), null));

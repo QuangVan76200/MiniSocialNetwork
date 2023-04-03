@@ -20,9 +20,11 @@ import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "Post")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
 
 	@Id
@@ -56,9 +58,11 @@ public class Post {
 	private String imageUrl;
 
 	@ManyToOne
+	@JsonIgnore
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
 	private User user;
 
+	@JsonIgnoreProperties("post")
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "post")
 	List<Comment> comment;
 

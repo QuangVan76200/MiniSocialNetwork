@@ -12,6 +12,7 @@ import java.util.Random;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,12 +20,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.demo.dao.IFileDBDao;
 import com.example.demo.dao.IPostDao;
 import com.example.demo.dao.IUserDao;
+import com.example.demo.dto.respone.CommentDTO;
+import com.example.demo.dto.respone.PostDTO;
 import com.example.demo.dto.respone.ResponseMessage;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
 import com.example.demo.exception.EmptyCommentException;
 import com.example.demo.exception.InvalidOperationException;
+import com.example.demo.exception.PostNotFoundException;
 import com.example.demo.service.IPostService;
 import com.example.demo.service.IUserService;
 import com.github.javafaker.Faker;
@@ -37,222 +41,243 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PostServiceImpl implements IPostService {
 
-    @Autowired
-    IUserService iUserService;
+	@Autowired
+	IUserService iUserService;
 
-    @Autowired
-    CommentServiceImpl commentServiceImpl;
+	@Autowired
+	CommentServiceImpl commentServiceImpl;
 
-    @Autowired
-    IPostDao blogDao;
+	@Autowired
+	IPostDao blogDao;
 
-    @Autowired
-    IUserDao userDao;
+	@Autowired
+	IUserDao userDao;
 
-    @Autowired
-    HttpServletRequest request;
+	@Autowired
+	HttpServletRequest request;
 
-    @Autowired
-    IFileDBDao iFileDBDao;
+	@Autowired
+	IFileDBDao iFileDBDao;
 
-    @Autowired
-    StoreFile storeFile;
+	@Autowired
+	StoreFile storeFile;
 
-    final Faker faker = new Faker();
-    final Random random = new Random();
+	final Faker faker = new Faker();
+	final Random random = new Random();
 
-    @Override
-    public Post save(Post blog) {
-        return blogDao.save(blog);
-    }
+	@Override
+	public Post save(Post blog) {
+		return blogDao.save(blog);
+	}
 
-    @Override
-    public Post createNewPost(String title, String content, MultipartFile imageUrl) throws IOException {
-        String user = request.getUserPrincipal().getName();
-        Optional<User> authUser = iUserService.getAuthenticatedUser(user);
+	@Override
+	public PostDTO createNewPost(String title, String content, MultipartFile imageUrl) throws IOException {
+		String user = request.getUserPrincipal().getName();
+		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
 
-        Post newPost = new Post();
-        newPost.setTitle(title);
-        newPost.setContent(content);
-        newPost.setLikeCount(0);
-        newPost.setCommentCount(0);
-        newPost.setCreatedAt(new Date());
-        newPost.setDateLastModified(new Date());
-        newPost.setUser(authUser.get());
+		Post newPost = new Post();
+		newPost.setTitle(title);
+		newPost.setContent(content);
+		newPost.setLikeCount(0);
+		newPost.setCommentCount(0);
+		newPost.setCreatedAt(new Date());
+		newPost.setDateLastModified(new Date());
+		newPost.setUser(authUser.get());
 
-        if (imageUrl != null && imageUrl.getSize() > 0) {
-            String imgUrl = storeFile.uploadFile(imageUrl).toString();
-            newPost.setImageUrl(imgUrl);
-        }
-        return blogDao.save(newPost);
-    }
+		if (imageUrl != null && imageUrl.getSize() > 0) {
+			String imgUrl = storeFile.uploadFile(imageUrl).toString();
+			newPost.setImageUrl(imgUrl);
+		}
 
-    @Override
-    public Optional<Post> updatePost(Long postId, String title, String content, MultipartFile imageUrl)
-            throws IOException, ResponseMessage {
-        String user = request.getUserPrincipal().getName();
-        Optional<Post> targetPost = blogDao.findById(postId);
+		Post savedPost = blogDao.save(newPost);
 
-        if (targetPost.isEmpty()) {
-            throw new ResponseMessage("Id Post does not exist");
-        } else {
-            if (targetPost.get().getUser().getUserName().equals(user)) {
-                targetPost.get().setTitle(title);
-                targetPost.get().setContent(content);
-                if (imageUrl != null && imageUrl.getSize() > 0) {
-                    String imgUrl = storeFile.uploadFile(imageUrl).toString();
-                    targetPost.get().setImageUrl(imgUrl);
-                } else {
-                    throw new ResponseMessage("imageUrl is empty");
-                }
-                targetPost.get().setDateLastModified(new Date());
-                return blogDao.save(targetPost);
-            } else {
-                new ResponseMessage("Not Author");
-            }
-        }
-        return targetPost;
-    }
+		ModelMapper modelMapper = new ModelMapper();
+		PostDTO postDTO = modelMapper.map(savedPost, PostDTO.class);
 
-    @Override
-    public void deletePost(Long postId) {
-        String user = request.getUserPrincipal().getName();
-        Optional<Post> targetPost = blogDao.findById(postId);
+		return postDTO;
+	}
 
-        if (targetPost.isEmpty()) {
-            new ResponseMessage("Id Post does not exist");
-        } else {
-            if (targetPost.get().getUser().getUserName().equals(user)) {
-                blogDao.deleteById(postId);
-            } else {
-                throw new InvalidOperationException("Not Author");
-            }
-        }
+	@Override
+	public PostDTO updatePost(Long postId, String title, String content, MultipartFile imageUrl)
+			throws IOException, ResponseMessage {
+		String user = request.getUserPrincipal().getName();
+		Optional<Post> targetPost = blogDao.findById(postId);
 
-    }
+		Post post = targetPost.orElseThrow(() -> new PostNotFoundException("Post Not Found"));
 
-    @Override
-    public List<Post> findAll() {
+		if (targetPost.isEmpty()) {
+			throw new ResponseMessage("Id Post does not exist");
+		}
 
-        return blogDao.findAll();
-    }
+		if (!targetPost.get().getUser().getUserName().equals(user)) {
+			throw new ResponseMessage("Not Author ");
+		}
 
-    @Override
-    public Optional<Post> findById(Long id) {
-        return blogDao.findById(id);
-    }
+		if (title != null) {
+			targetPost.get().setTitle(title);
+		}
 
-    @Override
-    public void remove(Long id) {
-        blogDao.deleteById(id);
-    }
+		if (content != null) {
+			targetPost.get().setContent(content);
+		}
 
-    @Override
-    public Iterable<Post> findAllByContentContaining(String content) {
-        return blogDao.findAllByContentContaining(content);
-    }
+		if (imageUrl != null && imageUrl.getSize() > 0) {
+			String imgUrl = storeFile.uploadFile(imageUrl).toString();
+			targetPost.get().setImageUrl(imgUrl);
+		}
 
-    @Override
-    public Iterable<Post> findAllByTitleContaining(String title) {
-        return blogDao.findAllByTitleContaining(title);
-    }
+		targetPost.get().setDateLastModified(new Date());
 
-    @Override
-    public List<Post> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate) {
-        System.out.println("startDate" + startDate);
-        System.out.println("endDate" + endDate);
-        return blogDao.findByCreatedAtBetween(startDate, endDate);
-    }
+		Post savedPost = blogDao.save(post);
 
-    @Override
-    public List<Post> findAllByCreatedAt(LocalDateTime createDate) {
-        return blogDao.findAllByCreatedAt(createDate);
-    }
+		ModelMapper modelMapper = new ModelMapper();
+		PostDTO postDTO = modelMapper.map(savedPost, PostDTO.class);
 
-    @Override
-    public List<Post> findAllWithByCreatedAtBefore(LocalDateTime createDate) {
-        return blogDao.findAllWithByCreatedAtBefore(createDate);
-    }
+		return postDTO;
+	}
 
-    @Override
-    public List<Post> findAllByUserId(Long userId) {
-        return blogDao.findAllByUserId(userId);
-    }
+	@Override
+	public void deletePost(Long postId) {
+		String user = request.getUserPrincipal().getName();
+		Optional<Post> targetPost = blogDao.findById(postId);
 
-    @Override
-    public int getCountOfnumbOfPost(Long id) {
-        return blogDao.getCountOfnumbOfPost(id);
-    }
+		if (targetPost.isEmpty()) {
+			new ResponseMessage("Id Post does not exist");
+		} else {
+			if (targetPost.get().getUser().getUserName().equals(user)) {
+				blogDao.deleteById(postId);
+			} else {
+				throw new InvalidOperationException("Not Author");
+			}
+		}
 
-    @Override
-    public List<Post> findPostByAuthorIdIn(List<Long> followingUserIds) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	}
 
-    @Override
-    public void likePost(Long postId) {
-        String user = request.getUserPrincipal().getName();
-        Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-        Optional<Post> targetPost = findById(postId);
-        if (!targetPost.get().getLikePost().contains(authUser.get())) {
-            targetPost.get().setLikeCount(targetPost.get().getLikeCount() + 1);
-            targetPost.get().getLikePost().add(authUser.get());
-            blogDao.save(targetPost.get());
-        } else {
-            unlikePost(postId);
-        }
+	@Override
+	public List<Post> findAll() {
+		return blogDao.findAll();
+	}
 
-    }
+	@Override
+	public Optional<Post> findById(Long id) {
+		
+		return blogDao.findById(id);
+	}
 
-    @Override
-    public void unlikePost(Long postId) {
-        String user = request.getUserPrincipal().getName();
-        Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-        Optional<Post> targetPost = findById(postId);
-        if (targetPost.get().getLikePost().contains(authUser.get())) {
-            targetPost.get().setLikeCount(targetPost.get().getLikeCount() - 1);
-            targetPost.get().getLikePost().remove(authUser.get());
-            blogDao.save(targetPost.get());
-        } else {
-            throw new InvalidOperationException("targetPost does not exists");
-        }
+	@Override
+	public void remove(Long id) {
+		blogDao.deleteById(id);
+	}
 
-    }
+	@Override
+	public Iterable<Post> findAllByContentContaining(String content) {
+		return blogDao.findAllByContentContaining(content);
+	}
 
-    @Override
-    public Comment createPostComment(Long postId, String text, MultipartFile imageUrl) throws IOException {
-        if (StringUtils.isEmpty(text))
-            throw new EmptyCommentException("Comment is Empty");
+	@Override
+	public Iterable<Post> findAllByTitleContaining(String title) {
+		return blogDao.findAllByTitleContaining(title);
+	}
 
-//		String user = request.getUserPrincipal().getName();
-//		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-        Optional<Post> targetPost = findById(postId);
-        Comment savedComment = commentServiceImpl.createNewComment(text, targetPost.get(), imageUrl);
-        targetPost.get().setCommentCount(targetPost.get().getCommentCount() + 1);
-        blogDao.save(targetPost.get());
+	@Override
+	public List<Post> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate) {
+		System.out.println("startDate" + startDate);
+		System.out.println("endDate" + endDate);
+		return blogDao.findByCreatedAtBetween(startDate, endDate);
+	}
 
-        return savedComment;
-    }
+	@Override
+	public List<Post> findAllByCreatedAt(LocalDateTime createDate) {
+		return blogDao.findAllByCreatedAt(createDate);
+	}
 
-    @Override
-    public Comment updatePostComment(Long commentId, Long postId, String text, MultipartFile imageUrl)
-            throws IOException {
-        if (StringUtils.isEmpty(text))
-            throw new EmptyCommentException("Comment is Empty");
-        return commentServiceImpl.updateComment(commentId, text, imageUrl);
-    }
+	@Override
+	public List<Post> findAllWithByCreatedAtBefore(LocalDateTime createDate) {
+		return blogDao.findAllWithByCreatedAtBefore(createDate);
+	}
 
-    @Override
-    public void deletePostComment(Long commentId, Long postId) {
-        Optional<Post> targetPost = findById(postId);
-        if (targetPost.isPresent()) {
-            commentServiceImpl.deleteComment(commentId);
-            targetPost.get().setCommentCount(targetPost.get().getCommentCount() - 1);
-            blogDao.save(targetPost.get());
-        } else {
-            throw new InvalidOperationException("targetPost does not exists");
-        }
-    }
+	@Override
+	public List<Post> findAllByUserId(Long userId) {
+		return blogDao.findAllByUserId(userId);
+	}
+
+	@Override
+	public int getCountOfnumbOfPost(Long id) {
+		return blogDao.getCountOfnumbOfPost(id);
+	}
+
+	@Override
+	public List<Post> findPostByAuthorIdIn(List<Long> followingUserIds) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void likePost(Long postId) {
+		Optional<Post> targetPost = findById(postId);
+		String username = request.getUserPrincipal().getName();
+		User authenticatedUser = iUserService.getAuthenticatedUser(username)
+				.orElseThrow(() -> new RuntimeException("No authenticated user found"));
+		if (targetPost.get().getLikePost().stream()
+				.noneMatch(user -> user.getUserName().equals(authenticatedUser.getUserName()))) {
+			targetPost.get().getLikePost().add(authenticatedUser);
+			targetPost.get().setLikeCount(targetPost.get().getLikeCount() + 1);
+			blogDao.save(targetPost.get());
+		}
+
+	}
+
+	@Override
+	public void unlikePost(Long postId) {
+		Optional<Post> targetPost = findById(postId);
+		String username = request.getUserPrincipal().getName();
+		User authenticatedUser = iUserService.getAuthenticatedUser(username)
+				.orElseThrow(() -> new RuntimeException("No authenticated user found"));
+
+		boolean isLiked = targetPost.get().getLikePost().contains(authenticatedUser);
+		if (isLiked) {
+			targetPost.get().getLikePost().remove(authenticatedUser);
+			targetPost.get().setLikeCount(targetPost.get().getLikeCount() - 1);
+			blogDao.save(targetPost.get());
+		} else {
+			throw new InvalidOperationException("Target post does not exist");
+		}
+
+	}
+
+	@Override
+	public CommentDTO createPostComment(Long postId, String text, MultipartFile imageUrl) throws IOException {
+		if (StringUtils.isEmpty(text))
+			throw new EmptyCommentException("Comment is Empty");
+
+		Optional<Post> targetPost = findById(postId);
+		CommentDTO savedComment = commentServiceImpl.createNewComment(text, targetPost.get(), imageUrl);
+		targetPost.get().setCommentCount(targetPost.get().getCommentCount() + 1);
+		blogDao.save(targetPost.get());
+
+		return savedComment;
+	}
+
+	@Override
+	public CommentDTO updatePostComment(Long commentId, Long postId, String text, MultipartFile imageUrl)
+			throws IOException {
+		try {
+			if (StringUtils.isEmpty(text))
+				throw new EmptyCommentException("Comment is Empty");
+			return commentServiceImpl.updateComment(commentId, text, imageUrl);
+		} catch (IOException e) {
+			e.getMessage();
+			throw e;
+		}
+	}
+
+	@Override
+	public void deletePostComment(Long commentId, Long postId) {
+		Optional<Post> targetPost = findById(postId);
+		targetPost.ifPresent(post -> {
+			commentServiceImpl.deleteComment(commentId);
+			post.setCommentCount(post.getCommentCount() - 1);
+		});
+	}
 
 }

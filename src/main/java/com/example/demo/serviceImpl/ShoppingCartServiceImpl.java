@@ -1,6 +1,10 @@
 package com.example.demo.serviceImpl;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
@@ -16,7 +20,9 @@ import com.example.demo.dto.request.AddProductToCartRequest;
 import com.example.demo.dto.request.CleanCartRequest;
 import com.example.demo.dto.request.CreateShoppingCartRequest;
 import com.example.demo.dto.request.RemoveFromCartDTO;
+import com.example.demo.dto.respone.CartItemDTO;
 import com.example.demo.dto.respone.ResponseMessage;
+import com.example.demo.dto.respone.ShoppingCartDTO;
 import com.example.demo.entity.CartItem;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.ShoppingCart;
@@ -45,23 +51,39 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	@Autowired
 	IProductDao productDao;
 
+	@Autowired
+	IShoppingCartDao cartDao;
+
 	@Override
-	public ShoppingCart createShoppingCart(CreateShoppingCartRequest cartRequest) throws ResponseMessage {
+	public ShoppingCartDTO createShoppingCart(CreateShoppingCartRequest cartRequest) throws ResponseMessage {
 		try {
 			String user = request.getUserPrincipal().getName();
 			Optional<User> authUser = iUserService.getAuthenticatedUser(user);
 
 			Optional<User> currentUser = userDao.findById(cartRequest.getUserId());
-			ShoppingCart newShoppingCart = new ShoppingCart();
-			if (currentUser.isPresent()) {
 
-				newShoppingCart.setUser(authUser.get());
-
-			} else {
-				throw new ResponseMessage("Id user is not exists");
+			if (!currentUser.isPresent()) {
+				throw new ResponseMessage("User ID not found");
 			}
+			// Check if user already has a shopping cart
+			ShoppingCart existingShoppingCart = cartDao.getShoppingCartByUser(currentUser.get().getId());
 
-			return shoppingCartDao.save(newShoppingCart);
+			if (existingShoppingCart != null) {
+				ShoppingCartDTO shoppingCartDTO = new ShoppingCartDTO();
+				shoppingCartDTO.setShoppingCartId(existingShoppingCart.getCartId());
+				shoppingCartDTO.setUserId(existingShoppingCart.getUser().getId());
+				return shoppingCartDTO;
+			}
+			// Create new shopping cart
+			ShoppingCart newShoppingCart = new ShoppingCart();
+			newShoppingCart.setUser(authUser.get());
+			ShoppingCart savedShoppingCart = shoppingCartDao.save(newShoppingCart);
+
+			ShoppingCartDTO shoppingCartDTO = new ShoppingCartDTO();
+			shoppingCartDTO.setShoppingCartId(savedShoppingCart.getCartId());
+			shoppingCartDTO.setUserId(savedShoppingCart.getUser().getId());
+			return shoppingCartDTO;
+
 		} catch (Exception e) {
 			throw new ResponseMessage("Internal Server Error");
 		}
@@ -80,7 +102,7 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	 * @throws ResponseMessage If the cart or the product cannot be found.
 	 */
 	@Override
-	public ShoppingCart addProductToCart(AddProductToCartRequest productCart) throws ResponseMessage {
+	public ShoppingCartDTO addProductToCart(AddProductToCartRequest productCart) throws ResponseMessage {
 
 		final Long CART_ID = productCart.getCartId();
 		final Long PRODUCT_ID = productCart.getProductItem().getProductId();
@@ -117,7 +139,6 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 			cartItem.setShoppingCartId(shoppingCart);
 			cartItem.setQuantity(QUANTITY);
 			cartItem.setTotalPrice(PRICE_PER_UNIT * QUANTITY);
-			System.out.println(cartItem.getTotalPrice());
 			cartItemsDao.save(cartItem);
 			shoppingCart.getListCartItem().add(cartItem);
 
@@ -128,7 +149,8 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 		}
 		shoppingCart.setTotalPayment(totalPayment);
 
-		return shoppingCartDao.save(shoppingCart);
+		ShoppingCart savedShoppingCart = shoppingCartDao.save(shoppingCart);
+		return ShoppingCartDTO.fromEntity(savedShoppingCart);
 	}
 
 	@Override
@@ -138,26 +160,42 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	}
 
 	@Override
-	public ShoppingCart getAllCartItems(Long cartId) throws ResponseMessage {
-		Optional<ShoppingCart> cartItems = shoppingCartDao.findById(cartId);
-		if (cartItems.isEmpty()) {
-			throw new ResponseMessage("Cart not Found");
+	public ShoppingCartDTO getAllCartItems(Long cartId) throws ResponseMessage {
+		Optional<ShoppingCart> cartOptional = shoppingCartDao.findById(cartId);
+		ShoppingCart cart = cartOptional.orElseThrow(() -> new ResponseMessage("Cart not found"));
+
+		Set<CartItem> cartItems = cart.getListCartItem();
+		List<CartItemDTO> cartItemDTOs = new ArrayList<>(cartItems.size());
+
+		for (CartItem cartItem : cartItems) {
+			CartItemDTO cartItemDTO = CartItemDTO.fromEntity(cartItem);
+			cartItemDTOs.add(cartItemDTO);
 		}
-		return cartItems.get();
+
+		ShoppingCartDTO shoppingCartDTO = new ShoppingCartDTO();
+		shoppingCartDTO.setShoppingCartId(cart.getCartId());
+		shoppingCartDTO.setUserId(cart.getUser().getId());
+		shoppingCartDTO.setCartItemDTO(cartItemDTOs);
+		shoppingCartDTO.setTotalPayment(cart.getTotalPayment());
+
+		return shoppingCartDTO;
 	}
 
 	@Override
 	public void cleanCart(CleanCartRequest cleanRequest) throws ResponseMessage {
-		Optional<ShoppingCart> cartItems = shoppingCartDao.findById(cleanRequest.getCartId());
-		if (cartItems.isEmpty()) {
-			throw new ResponseMessage("Cart not Found");
+		Optional<ShoppingCart> optionalCart = shoppingCartDao.findById(cleanRequest.getCartId());
+		if (optionalCart.isEmpty()) {
+			throw new ResponseMessage("Cart not found");
 		}
-		int size = cleanRequest.getProductIds().size();
-		for (int i = 0; i < size; i++) {
-			cartItemsDao.deleteByProductIdAndCartId(cleanRequest.getProductIds().get(i), cleanRequest.getCartId());
-		}
-		cartItems.get().setTotalPayment(0D);
-		shoppingCartDao.save(cartItems.get());
+
+		ShoppingCart cart = optionalCart.get();
+		Set<Long> productIds = new HashSet<>(cleanRequest.getProductIds());
+		cart.getListCartItem().removeIf(item -> productIds.contains(item.getProduct().getProductId()));
+
+		double totalPayment = cart.getListCartItem().stream().mapToDouble(CartItem::getTotalPrice).sum();
+
+		cart.setTotalPayment(totalPayment);
+		shoppingCartDao.save(cart);
 	}
 
 	@Override

@@ -30,7 +30,6 @@ public class ImageFile {
 
 	@Lob
 	@Column(name = "files", length = 50000000)
-	@JsonIgnore
 	private byte[] files;
 
 	@Column(name = "type")
@@ -40,18 +39,24 @@ public class ImageFile {
 	@JoinColumn(name = "postId")
 	@JsonIgnore
 	private Post postImage;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "productId")
+	@JsonIgnore
+	private Product productImage;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "messageId")
 	@JsonIgnore
 	private Message messageImage;
 
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "commentId")
 	@JsonIgnore
 	private Comment commentImage;
 	
-	@ManyToOne(fetch = FetchType.EAGER)
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "groupId")
 	@JsonIgnore
 	private GroupEntity groupImage;

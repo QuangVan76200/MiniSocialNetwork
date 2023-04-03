@@ -25,7 +25,6 @@ import com.example.demo.service.IChatMessageService;
 import com.example.demo.service.IUserService;
 
 @Service
-@Transactional
 public class ChatMessageServiceImpl implements IChatMessageService {
 
 	@Autowired
@@ -88,6 +87,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
 	}
 
 	@Override
+	@Transactional
 	public Message updateMessage(MessageDTO message) throws IOException, ResponseMessage {
 		String user = request.getUserPrincipal().getName();
 		Message targetMessage = findById(message.getMessageId());
@@ -136,29 +136,30 @@ public class ChatMessageServiceImpl implements IChatMessageService {
 		return messageUnread;
 	}
 
-    @Override
-    public MessageDTO updateCompletionStatus(Long secondId) throws ResponseMessage  {
-        String user = request.getUserPrincipal().getName();
-        Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-        if (authUser.get().getId() != null) {
-            throw new ResponseMessage("Unauthorized");
-        }
-        
-        Optional<Message> updateStatus = messageDao.updateCompletionStatus(authUser.get().getId(), secondId);
-        
-        ModelMapper mapper = new ModelMapper();
-        
-        return mapper.map(updateStatus, MessageDTO.class);
-    }
+	@Transactional
+	@Override
+	public MessageDTO updateCompletionStatus(Long secondId) throws ResponseMessage {
+		String user = request.getUserPrincipal().getName();
+		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
+		if (authUser.get().getId() != null) {
+			throw new ResponseMessage("Unauthorized");
+		}
 
-    @Override
-    public int countUnreadMessage(Long toUserId)  throws ResponseMessage {
-        String user = request.getUserPrincipal().getName();
-        Optional<User> authUser = iUserService.getAuthenticatedUser(user);
-        if (authUser.get().getId() != null) {
-            throw new ResponseMessage("Unauthorized");
-        }
-        return messageDao.countUnreadMessage(authUser.get().getId(), toUserId);
-    }
+		Optional<Message> updateStatus = messageDao.updateCompletionStatus(authUser.get().getId(), secondId);
+
+		ModelMapper mapper = new ModelMapper();
+
+		return mapper.map(updateStatus, MessageDTO.class);
+	}
+
+	@Override
+	public int countUnreadMessage(Long toUserId) throws ResponseMessage {
+		String user = request.getUserPrincipal().getName();
+		Optional<User> authUser = iUserService.getAuthenticatedUser(user);
+		if (authUser.get().getId() != null) {
+			throw new ResponseMessage("Unauthorized");
+		}
+		return messageDao.countUnreadMessage(authUser.get().getId(), toUserId);
+	}
 
 }

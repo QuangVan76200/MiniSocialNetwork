@@ -9,10 +9,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import com.example.demo.dto.request.MessageDTO;
 import com.example.demo.entity.Message;
 
+@Repository
 public interface IChatMessageDao extends JpaRepository<Message, Long> {
 
     @Query(value =  "Select m from message as m "
@@ -22,7 +24,6 @@ public interface IChatMessageDao extends JpaRepository<Message, Long> {
     List<Message> findAllMessagesBetweenTwoUsers(@Param("firstUser") Long firstUserId,
             @Param("secondUser") Long secondUserId);
 
-    @Transactional
     @Modifying
     @Query(value = "Update message as m " + "SET m.message_status =1"
             + "WHERE m.from_user_id = :firstUser AND  m.to_user_id = :secondUser"
@@ -38,7 +39,6 @@ public interface IChatMessageDao extends JpaRepository<Message, Long> {
             + "Order By m.time DESC", nativeQuery = true)
     List<Message> getAllMessages(@Param("userId") Long userId);
 
-    @Transactional
     @Modifying
     @Query(value = "update Message as m" +
             "set m.status = 1" +
