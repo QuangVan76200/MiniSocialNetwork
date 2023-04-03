@@ -76,6 +76,7 @@ public class ChatMessageServiceImpl implements IChatMessageService {
 	}
 
 	@Override
+	@Transactional
 	public void deleteMessage(Long messageId) throws ResponseMessage {
 		String user = request.getUserPrincipal().getName();
 		Message targetMessage = findById(messageId);

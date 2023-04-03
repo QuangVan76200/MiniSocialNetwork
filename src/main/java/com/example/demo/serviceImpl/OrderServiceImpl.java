@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,7 @@ public class OrderServiceImpl implements IOrderService {
 	 * @throws ResponseMessage If there is an error creating the order.
 	 */
 	@Override
+	@Transactional
 	public OrderDetails createOrderItems(Long cartItemId, OrderProductItem orderItem, ShippingAddress shippingAddress,
 			BillingAddress billingAddress, Payment payment, String shippingMethod) throws ResponseMessage {
 		try {
@@ -164,6 +166,7 @@ public class OrderServiceImpl implements IOrderService {
 	 * @throws ResponseMessage If the order is not found.
 	 */
 	@Override
+	@Transactional
 	public void cancelOrder(Long orderDetailsId) throws ResponseMessage {
 
 //		OrderDetails productOrder = orderDao.productOrders(productId, orderID);	

@@ -102,6 +102,7 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	 * @throws ResponseMessage If the cart or the product cannot be found.
 	 */
 	@Override
+	@Transactional
 	public ShoppingCartDTO addProductToCart(AddProductToCartRequest productCart) throws ResponseMessage {
 
 		final Long CART_ID = productCart.getCartId();
@@ -182,6 +183,7 @@ public class ShoppingCartServiceImpl implements IShoppingCartService {
 	}
 
 	@Override
+	@Transactional
 	public void cleanCart(CleanCartRequest cleanRequest) throws ResponseMessage {
 		Optional<ShoppingCart> optionalCart = shoppingCartDao.findById(cleanRequest.getCartId());
 		if (optionalCart.isEmpty()) {
