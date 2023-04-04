@@ -27,6 +27,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import lombok.Data;
 
@@ -107,6 +108,10 @@ public class User implements Serializable {
 
     @OneToMany(mappedBy = "toUser", cascade = CascadeType.ALL)
     public List<Message> getToUserMessagesList = new ArrayList<>();
+    
+    @JsonManagedReference
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "post")
+	List<Comment> comment;
 
     @Transient
     private boolean enabled;

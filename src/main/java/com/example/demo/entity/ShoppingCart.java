@@ -15,7 +15,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "shoppingCart")
@@ -31,13 +32,14 @@ public class ShoppingCart implements Serializable {
 	private Long cartId;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "shoppingCartId", fetch = FetchType.EAGER)
-	@JsonIgnore
+	@JsonManagedReference
 	private Set<CartItem> listCartItem;
 
 	@Column(name = "totalPayment")
 	private Double totalPayment;
 
 	@ManyToOne
+	@JsonBackReference
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
 	private User user;
 

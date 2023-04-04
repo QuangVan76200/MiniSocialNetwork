@@ -17,7 +17,9 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "message")
@@ -32,6 +34,7 @@ public class Message {
 
 	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "messageImage")
+	@JsonManagedReference
 	Set<ImageFile> images;
 
 	@Column(name = "imageUrl")
@@ -39,6 +42,7 @@ public class Message {
 
 	@ManyToOne
 	@JoinColumn(name = "from_user_id", referencedColumnName = "userId")
+	@JsonBackReference
 	private User fromUser;
 
 	@ManyToOne

@@ -14,9 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "cartItem")
@@ -32,10 +30,12 @@ public class CartItem implements Serializable {
 	private Long cartItemId;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonBackReference
 	@JoinColumn(name = "productId")
 	private Product product;
 
 	@ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonBackReference
 	@JoinColumn(name = "cartId")
 	private ShoppingCart shoppingCartId;
 

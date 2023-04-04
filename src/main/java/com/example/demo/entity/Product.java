@@ -16,8 +16,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "Product")
@@ -52,10 +54,12 @@ public class Product implements Serializable {
 	private String imageUrl;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "product",  orphanRemoval = true, fetch = FetchType.LAZY)
+	@JsonManagedReference
 	private List<CartItem> listCartItems;
 
 	@ManyToOne
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
+	@JsonBackReference
 	private User user;
 	
 	@JsonIgnore

@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
@@ -37,28 +38,28 @@ public class ImageFile {
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "postId")
-	@JsonIgnore
+	@JsonBackReference
 	private Post postImage;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "productId")
-	@JsonIgnore
+	@JsonBackReference
 	private Product productImage;
 
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "messageId")
-	@JsonIgnore
+	@JsonBackReference
 	private Message messageImage;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "commentId")
-	@JsonIgnore
+	@JsonBackReference
 	private Comment commentImage;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "groupId")
-	@JsonIgnore
+	@JsonBackReference
 	private GroupEntity groupImage;
 
 	public ImageFile() {

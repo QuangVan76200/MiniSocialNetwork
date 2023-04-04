@@ -50,8 +50,8 @@ public class Comment {
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonBackReference
 	@JoinColumn(name = "postId")
-	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 	private Post post;
 
 	@ManyToMany

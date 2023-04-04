@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "chat_group")
@@ -30,6 +31,7 @@ public class GroupEntity {
 
 	@JsonIgnore
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "groupImage")
+	@JsonManagedReference
 	Set<ImageFile> images;
 	
 	@Column(name = "imageUrl")

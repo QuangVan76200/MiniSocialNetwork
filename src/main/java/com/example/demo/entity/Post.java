@@ -18,13 +18,14 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "Post")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Post {
 
 	@Id
@@ -58,11 +59,11 @@ public class Post {
 	private String imageUrl;
 
 	@ManyToOne
-	@JsonIgnore
+	@JsonBackReference
 	@JoinColumn(name = "userId", nullable = false, referencedColumnName = "userId")
 	private User user;
 
-	@JsonIgnoreProperties("post")
+	@JsonManagedReference
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "post")
 	List<Comment> comment;
 
